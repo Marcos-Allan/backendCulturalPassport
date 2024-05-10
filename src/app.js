@@ -1,5 +1,6 @@
 //IMPORTA AS BIBLIOTECAS BAIXADAS E NECESSÁRIAS PARA RODAR A APLICAÇÃO
 const express = require('express')
+const cors = require('cors')
 const mongoose = require('mongoose')
 
 //INICIA AS VARIÁVEIS DE AMBIENTE PARA SEGURANÇA DA APLICAÇÃO
@@ -7,6 +8,9 @@ require('dotenv').config()
 
 //INICIA A APLICAÇÃO USANDO A BIBLIOTECA EXPRESS
 const app = express()
+
+//DISPONIBILIZA O USO DA API EM OUTROS DOMINIOS
+app.use(cors())
 
 //DA PERMISSÃO PARA LER JSON EM REQUISIÇÕES
 app.use(express.json())
@@ -19,7 +23,7 @@ const Person = mongoose.model('Person', {
 });
 
 //MÉTODO DE SIGN-IN
-app.post('/signin', async (req, res) => {
+app.post('/signup', async (req, res) => {
 
     //PEGA OS DADOS PELA REQUISIÇÃO
     const name = req.body.name
@@ -40,7 +44,7 @@ app.post('/signin', async (req, res) => {
     res.send(person)
 })
 
-app.post('/signup', async (req, res) => {
+app.post('/signin', async (req, res) => {
     //PEGA OS DADOS PELA REQUISIÇÃO
     const emailPesq = req.body.email
 
