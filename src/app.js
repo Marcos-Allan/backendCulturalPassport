@@ -3,8 +3,12 @@ const express = require('express')
 const cors = require('cors')
 const mongoose = require('mongoose')
 
+
 //INICIA AS VARIÁVEIS DE AMBIENTE PARA SEGURANÇA DA APLICAÇÃO
 require('dotenv').config()
+
+//INICIA A VARIAVEL PORTA COM O VALOR DA VARIAVEL DE AMBIENTE OU NA 8080
+const port = process.env.PORT || 3000
 
 //INICIA A APLICAÇÃO USANDO A BIBLIOTECA EXPRESS
 const app = express()
@@ -76,7 +80,7 @@ app.get('/users', async (req, res) => {
 })
 
 //RODA O SERVIDOR NA PORTA ESPECIFICADA
-app.listen(process.env.PORT, () => {
+app.listen(port, () => {
 
     //FAZ A CONEXÃO COM O MONGO DB
     mongoose.connect(process.env.MONGODB_CONECTION);
