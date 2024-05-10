@@ -83,7 +83,7 @@ app.get('/users', async (req, res) => {
 app.listen(port, () => {
 
     //FAZ A CONEXÃO COM O MONGO DB
-    mongoose.connect(process.env.MONGODB_CONECTION);
+    mongoose.connect(process.env.MONGODB_URI);
 
     //RETORNA FEEDBACK PARA O USÁRIO
     console.log('servidor rodando')
