@@ -2,6 +2,9 @@
 const express = require('express')
 const cors = require('cors')
 const mongoose = require('mongoose')
+// const bcrypt = require('bcrypt')
+const argon2 = require('argon2')
+const jwt = require('jsonwebtoken')
 
 //AVATARES FOTOS
 const avatares = [
@@ -11,6 +14,24 @@ const avatares = [
     'data:image/jpeg;base64,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A86m4PYobZ31WL/3dy/DPzlhngLYWGQE9wEREBITWqpRXDt9oXaByUfe2rZFTwI5yZY2zPCcl1k0ua9VmJ8CkhRwC8+53wIWxZWRvesRfgQdxkpg6xsjtvQlGHINbZYHiN3r0mPCYIuQzZC3mZY9BaFNasWItSUU7/mZWZgo/pv0hF30WhWjTDbwi3vwy3eW6bkRCkREBERAREQEREBERA18am1TdeaMPUESvamaNZENaqpV3AAVhZlUW3jgSc7dpaYgIiICIiAiIgROs1TZwmIINv5T58rgi85NgKQqVL71UAjlcXvb4ZztOIoq6sji6uCpB3EEWI9JyPSWiXw7utUXG9d4VlByUHrlfqOUCc0PgziGKofAvvONy/lXm3wHHlL/AIbDrTUIgsqiw/c9ZXdSwAtQAAe54RwyPKWmAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgJo6T0bTxCbFVbjeDxB3XE3ogVfR2rtSg96daybt12K77EMCLy0REBERAREQEREBERAREQEREBERAREQEREBERAREQEREBERAREQEREBERAREQEREBERAREQEREBERAREQEREBERA//2Q==',
     'https://static.wikia.nocookie.net/ben10/images/c/cd/MassaPose.png/revision/latest/scale-to-width-down/250?cb=20130724230118&path-prefix=pt'
 ]
+
+//FUNÇÃO PARA FAZER HASH DA SENHA
+async function hashPassword(password) {
+    try {
+        return await argon2.hash(password);
+    } catch (err) {
+        throw new Error('Erro ao hashear a senha');
+    }
+}
+  
+  //FUNÇÃO PARA VERIFICAR A SENHA
+    async function verifyPassword(hash, password) {
+        try {
+            return await argon2.verify(hash, password);
+        } catch (err) {
+            throw new Error('Erro ao verificar a senha');
+    }
+}
 
 //FUNÇÃO QUE RETORNA O VALOR DE UN INDICE ALEATÓRIO DO ARRAY DE AVATARES
 function sortAvatar(array) {
@@ -49,6 +70,7 @@ app.post('/signup', async (req, res) => {
     //PEGA OS DADOS PELA REQUISIÇÃO
     const email = req.body.email
     const name = req.body.name
+    const password = req.body.password
 
     //SE NÃO TIVER IMAGEM ESPECIFICADA PEGA UMA ALEATÓRIA DOS AVATARES
     const img = req.body.img || sortAvatar(avatares)
@@ -63,10 +85,18 @@ app.post('/signup', async (req, res) => {
         
         return
     }else{
+
+        //DIFICULTA A ACESSIBILIDADE DA SENHA AJUDANDO COM O HASH DA SENHA PARA SEGURANÇA DO USUÁRIO
+        // const salt = await bcrypt.genSalt(12)
+
+        //CRIA O HASH DA SENHA JUNTO COM A VARIAVEL QUE AUMENTA A COMPLEXIDADE DELA
+        const passwordHash = await hashPassword(password)
+
         //CRIA UM NOVO USUÁRIO
         const person = new Person({
             name: name,
             email: email,
+            password: passwordHash,
             img: img
         });
 
@@ -84,6 +114,7 @@ app.post('/signup', async (req, res) => {
 app.post('/signin', async (req, res) => {
     //PEGA OS DADOS PELA REQUISIÇÃO
     const emailPesq = req.body.email
+    const password = req.body.password
 
     //PROCURA POR UM USUARIO COM O CAMPO ESPECIFICADO
     const person = await Person.findOne({ email: emailPesq })
@@ -91,12 +122,82 @@ app.post('/signin', async (req, res) => {
     //VERIFICA SE A CONTA ESTÁ CADASTRADA
     if(person){
         
-        //RETORNA DADOS DA CONTA COMO FEEDBACK
-        res.send(person)
+        //VERIFICA SE A SENHA É IGUAL A CADASTRADA QUE ESTÁ CRIPTOGRAFADA NO BANCO DE DADOS
+        const checkPassword = await verifyPassword(person.password, password)
 
+        //CASO A SENHA FOR CORRETA
+        if(checkPassword){
+            
+            //PEGA O SECRET DA APLICAÇÃO
+            const secret = process.env.SECRET
+
+            //CRIA O TOKEN DE ACESSO DO USUÁRIO
+            const token = jwt.sign(
+                {
+                    id: person._id
+                },
+                secret
+            )
+
+            //RETORNA DADOS DA CONTA COMO FEEDBACK
+            res.send(person)
+
+            // res.send({msg: 'token', token: token})
+
+        }else{
+            res.send('Senha incorreta, hacker fdp')
+        }
     }else{
         //RETORNA FEEDBACK NEGATIVO PARA O USUÁRIO
         res.send('Usuario não encontrado, esse atribulado não está cadastrado')
+    }
+})
+
+//MIDDLEWARE DE VERIFICAÇÃO DE TOKEN
+function ckeckToken(req, res, next) {
+
+    //PEGA NOS HEADERS DA REQUISIÇÃO A AUTORIZAÇÃO PASSADA
+    const authHeader = req.headers['authorization']
+    
+    //EXTRAI O TOKEN DE TODO TEXTO DA AUTORIZAÇÃO
+    const token = authHeader && authHeader.split(" ")[1]
+
+    //CASO NÃO TENHA UM TOKEN
+    if(!token){
+        //RETORNA UUM FEEDBACK PARA O USUÁRIO
+        res.send('Acesso negado man')
+    }
+    
+    try {
+        //PEGA NOVAMENTE O SECRET DA APLICAÇÃO
+        const secret = process.env.SECRET
+
+        //VERIFICA SE O TOKEN E O SECRET DA APLICAÇÃO ESTÃO CORRETOS
+        jwt.verify(token, secret)
+
+        //LIBERA O ACESSO PARA CONTINUIDADE DO PROCESSO DE APLICAÇÃO
+        next()
+    } catch (error) {
+        //RETORNA MENSAGEM DE TOKEN INVÁLIDO
+        res.send('token invalido')
+    }
+
+}
+
+//EXEMPLO DE ROTA PRIVADA PARA 
+app.get('/user/:id', ckeckToken, async (req, res) => {
+    //PEGA O ID PASSADO PELOS PARÂMETROS DA REQUISIÇÃO
+    const id = req.params.id
+
+    //VÊ SE O USUÁRIO EXISTE OU NÃO
+    const person = await Person.findById(id, '-password')
+
+    if(person){
+        //RETORNA OS DADOS PARA O USUÁRIO
+        res.send(person)
+    }else{
+        //RETORNA MENSAGEM DE ERRO DO USUÁRO NÃO ENCONTRADO
+        res.send("Usuário não encontrado")
     }
 })
 
