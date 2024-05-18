@@ -5,7 +5,6 @@ const mongoose = require('mongoose')
 const bcrypt = require('bcrypt')
 const jwt = require('jsonwebtoken')
 
-<<<<<<< HEAD
 //AVATARES FOTOS
 const avatares = [
     'https://static.wikia.nocookie.net/ben10/images/1/18/Arraia-%C3%A0-Jato_Pose.png/revision/latest/scale-to-width-down/250?cb=20210111002428&path-prefix=pt',
@@ -23,8 +22,6 @@ function sortAvatar(array) {
     //RETORNA A FOTO NO INDICE SELECIONADO
     return array[indice]
 }
-=======
->>>>>>> parent of 3679d68 (adicionei novas rotas, e melhorei lógica)
 
 //INICIA AS VARIÁVEIS DE AMBIENTE PARA SEGURANÇA DA APLICAÇÃO
 require('dotenv').config()
@@ -49,32 +46,27 @@ const Person = mongoose.model('Person', {
     img: String,
 });
 
-//MÉTODO DE SIGN-IN
+//ROTA PARA FAZER SIGN-UP
 app.post('/signup', async (req, res) => {
-
     //PEGA OS DADOS PELA REQUISIÇÃO
+    const email = req.body.email
     const name = req.body.name
-<<<<<<< HEAD
     const password = req.body.password
 
     //SE NÃO TIVER IMAGEM ESPECIFICADA PEGA UMA ALEATÓRIA DOS AVATARES
     const img = req.body.img || sortAvatar(avatares)
-=======
-    const email = req.body.email
-    const img = req.body.img
->>>>>>> parent of 3679d68 (adicionei novas rotas, e melhorei lógica)
 
-    //CRIA UM NOVO USUÁRIO
-    const person = new Person({
-        name: name,
-        email: email,
-        img: img
-    });
+    //PROCURA POR UM USUARIO COM O CAMPO ESPECIFICADO
+    const person = await Person.findOne({ email: email })
 
-    //SALVA O USUÁRIO NO BANCO DE DADOS
-    await person.save()
+    //VERIFICA SE A CONTA JÁ ESTÁ CADASTRADA NO BANCO DE DADOS
+    if(person){
+        //RETORNA ERRO DE CONTA JA CRIADA
+        res.send('Usuário já cadastrado com esse email')
+        
+        return
+    }else{
 
-<<<<<<< HEAD
         //DIFICULTA A ACESSIBILIDADE DA SENHA AJUDANDO COM O HASH DA SENHA PARA SEGURANÇA DO USUÁRIO
         const salt = await bcrypt.genSalt(12)
 
@@ -97,12 +89,9 @@ app.post('/signup', async (req, res) => {
         
         return
     }
-=======
-    //RETORNA O USUÁRIO PARA FEEDBACK
-    res.send(person)
->>>>>>> parent of 3679d68 (adicionei novas rotas, e melhorei lógica)
 })
 
+//ROTA PARA FAZER SIGN-IN
 app.post('/signin', async (req, res) => {
     //PEGA OS DADOS PELA REQUISIÇÃO
     const emailPesq = req.body.email
@@ -204,6 +193,53 @@ app.get('/users', async (req, res) => {
     const person = await Person.find()
     
     //RETORNA OS USUÁRIOS PARA O USUÁRIO
+    res.send(person)
+})
+
+//PROCURA POR USUÁRIO ESPECIFICO
+app.get('/users/:email', async (req, res) => {
+    //PEGA OS DADOS PELA REQUISIÇÃO
+    const email = req.params.email
+
+    //PROCURA POR UM USUARIO COM O CAMPO ESPECIFICADO
+    const person = await Person.findOne({ email: email })
+
+    //VERIFICA SE A CONTA JÁ ESTÁ CADASTRADA NO BANCO DE DADOS
+    if(person){
+        //RETORNA O USUÁRIO ESPECIFICADO
+        res.send(person)
+        
+        return
+    }else{
+        //RETORNA ERRO DE CONTA NÃO FOR ENCONTRADA
+        res.send('Usuário não encontrado')
+        
+        return
+    }
+})
+
+//ROTA PARA ATUALIZAR USUÁRIO
+app.put('/users/update/:id', async (req, res) => {
+    //PEGA OS DADOS PELA REQUISIÇÃO
+    const id = req.params.id
+    const update = req.body
+
+    //PROCURA POR UM USUARIO COM O CAMPO ESPECIFICADO E ATUALIZA
+    const person = await Person.findByIdAndUpdate(id, update, { new: true })
+    
+    //RETORNA O RESULTADO DA REQUISIÇÃO
+    res.send(person)
+})
+
+//ROTA PARA DELETAR USUÁRIO
+app.delete('/users/delete/:id', async (req, res) => {
+    //PEGA OS DADOS PELA REQUISIÇÃO
+    const id = req.params.id
+    
+    //PROCURA POR UM USUARIO COM O CAMPO ESPECIFICADO  E DELETA
+    const person = await Person.findByIdAndDelete(id)
+    
+    //RETORNA O RESULTADO DA REQUISIÇÃO
     res.send(person)
 })
 
