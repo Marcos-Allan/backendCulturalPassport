@@ -2,6 +2,8 @@
 const express = require('express')
 const cors = require('cors')
 const mongoose = require('mongoose')
+const bcrypt = require('bcrypt')
+const jwt = require('jsonwebtoken')
 
 //AVATARES FOTOS
 const avatares = [
@@ -49,6 +51,7 @@ app.post('/signup', async (req, res) => {
     //PEGA OS DADOS PELA REQUISIÇÃO
     const email = req.body.email
     const name = req.body.name
+    const password = req.body.password
 
     //SE NÃO TIVER IMAGEM ESPECIFICADA PEGA UMA ALEATÓRIA DOS AVATARES
     const img = req.body.img || sortAvatar(avatares)
@@ -63,10 +66,18 @@ app.post('/signup', async (req, res) => {
         
         return
     }else{
+
+        //DIFICULTA A ACESSIBILIDADE DA SENHA AJUDANDO COM O HASH DA SENHA PARA SEGURANÇA DO USUÁRIO
+        const salt = await bcrypt.genSalt(12)
+
+        //CRIA O HASH DA SENHA JUNTO COM A VARIAVEL QUE AUMENTA A COMPLEXIDADE DELA
+        const passwordHash = await bcrypt.hash(password, salt)
+
         //CRIA UM NOVO USUÁRIO
         const person = new Person({
             name: name,
             email: email,
+            password: passwordHash,
             img: img
         });
 
@@ -84,6 +95,7 @@ app.post('/signup', async (req, res) => {
 app.post('/signin', async (req, res) => {
     //PEGA OS DADOS PELA REQUISIÇÃO
     const emailPesq = req.body.email
+    const password = req.body.password
 
     //PROCURA POR UM USUARIO COM O CAMPO ESPECIFICADO
     const person = await Person.findOne({ email: emailPesq })
@@ -91,12 +103,82 @@ app.post('/signin', async (req, res) => {
     //VERIFICA SE A CONTA ESTÁ CADASTRADA
     if(person){
         
-        //RETORNA DADOS DA CONTA COMO FEEDBACK
-        res.send(person)
+        //VERIFICA SE A SENHA É IGUAL A CADASTRADA QUE ESTÁ CRIPTOGRAFADA NO BANCO DE DADOS
+        const checkPassword = await bcrypt.compare(password, person.password)
 
+        //CASO A SENHA FOR CORRETA
+        if(checkPassword){
+            
+            //PEGA O SECRET DA APLICAÇÃO
+            const secret = process.env.SECRET
+
+            //CRIA O TOKEN DE ACESSO DO USUÁRIO
+            const token = jwt.sign(
+                {
+                    id: person._id
+                },
+                secret
+            )
+
+            //RETORNA DADOS DA CONTA COMO FEEDBACK
+            res.send(person)
+
+            // res.send({msg: 'token', token: token})
+
+        }else{
+            res.send('Senha incorreta, hacker fdp')
+        }
     }else{
         //RETORNA FEEDBACK NEGATIVO PARA O USUÁRIO
         res.send('Usuario não encontrado, esse atribulado não está cadastrado')
+    }
+})
+
+//MIDDLEWARE DE VERIFICAÇÃO DE TOKEN
+function ckeckToken(req, res, next) {
+
+    //PEGA NOS HEADERS DA REQUISIÇÃO A AUTORIZAÇÃO PASSADA
+    const authHeader = req.headers['authorization']
+    
+    //EXTRAI O TOKEN DE TODO TEXTO DA AUTORIZAÇÃO
+    const token = authHeader && authHeader.split(" ")[1]
+
+    //CASO NÃO TENHA UM TOKEN
+    if(!token){
+        //RETORNA UUM FEEDBACK PARA O USUÁRIO
+        res.send('Acesso negado man')
+    }
+    
+    try {
+        //PEGA NOVAMENTE O SECRET DA APLICAÇÃO
+        const secret = process.env.SECRET
+
+        //VERIFICA SE O TOKEN E O SECRET DA APLICAÇÃO ESTÃO CORRETOS
+        jwt.verify(token, secret)
+
+        //LIBERA O ACESSO PARA CONTINUIDADE DO PROCESSO DE APLICAÇÃO
+        next()
+    } catch (error) {
+        //RETORNA MENSAGEM DE TOKEN INVÁLIDO
+        res.send('token invalido')
+    }
+
+}
+
+//EXEMPLO DE ROTA PRIVADA PARA 
+app.get('/user/:id', ckeckToken, async (req, res) => {
+    //PEGA O ID PASSADO PELOS PARÂMETROS DA REQUISIÇÃO
+    const id = req.params.id
+
+    //VÊ SE O USUÁRIO EXISTE OU NÃO
+    const person = await Person.findById(id, '-password')
+
+    if(person){
+        //RETORNA OS DADOS PARA O USUÁRIO
+        res.send(person)
+    }else{
+        //RETORNA MENSAGEM DE ERRO DO USUÁRO NÃO ENCONTRADO
+        res.send("Usuário não encontrado")
     }
 })
 
