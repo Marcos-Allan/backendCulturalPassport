@@ -137,9 +137,9 @@ app.post('/signin', async (req, res) => {
             const token = jwt.sign({ id: person._id }, secret)
 
             //RETORNA DADOS DA CONTA COMO FEEDBACK
-            // res.send(person)
+            res.send(person)
 
-            res.send({msg: 'token', token: token})
+            // res.send({msg: 'token', token: token})
 
         }else{
             res.send('Senha incorreta, hacker fdp')
