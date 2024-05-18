@@ -87,9 +87,28 @@ app.post('/signup', async (req, res) => {
     const email = req.body.email
     const name = req.body.name
     const password = req.body.password
-
+    
     //SE NÃO TIVER IMAGEM ESPECIFICADA PEGA UMA ALEATÓRIA DOS AVATARES
     const img = req.body.img || sortAvatar(avatares)
+
+    //MANDA MSG DE EMAIL NÃO INFORMADO
+    if(!email){ 
+        res.send('Por favor infomre o email')
+        return
+    }
+    
+    //MANDA MSG DE NOME NÃO INFORMADO
+    if(!name){
+        res.send('Por favor informe o seu nome')
+        return
+    }
+    
+    //MANDA MSG DE SENHA NÃO INFORMADA
+    if(!password){
+        res.send('Por favor insira a senha')
+        return
+    }
+
 
     //PROCURA POR UM USUARIO COM O CAMPO ESPECIFICADO
     const person = await Person.findOne({ email: email })
@@ -101,40 +120,22 @@ app.post('/signup', async (req, res) => {
         
         return
     }else{
-        //VERIFICA SE O CRIAÇÃO DA CONTA FOI FEITA COM A SENHA OU NÃO
-        if(password){
-            //USA A FUNÇÃO DE HASHEAR SENHA
-            const passwordHash = await hashPassword(password)
+        //USA A FUNÇÃO DE HASHEAR SENHA
+        const passwordHash = await hashPassword(password)
 
-            //CRIA UM NOVO USUÁRIO
-            const person = new Person({
-                name: name,
-                email: email,
-                password: passwordHash,
-                img: img
-            });
+        //CRIA UM NOVO USUÁRIO
+        const person = new Person({
+            name: name,
+            email: email,
+            password: passwordHash,
+            img: img
+        });
 
-            //SALVA O USUÁRIO NO BANCO DE DADOS
-            await person.save()
+        //SALVA O USUÁRIO NO BANCO DE DADOS
+        await person.save()
 
-            //RETORNA O USUÁRIO PARA FEEDBACK
-            res.send(person)
-
-            //FORNECE OS DADOS DO USUÁRIO JÁ QUE A CONTA DELE NÃO TEM SENHA CADASTRADA
-        }else{
-            //CRIA UM NOVO USUÁRIO
-            const person = new Person({
-                name: name,
-                email: email,
-                img: img
-            });
-
-            //SALVA O USUÁRIO NO BANCO DE DADOS
-            await person.save()
-
-            //RETORNA O USUÁRIO PARA FEEDBACK
-            res.send(person)
-        }
+        //RETORNA O USUÁRIO PARA FEEDBACK
+        res.send(person)
         
         return
     }
@@ -146,45 +147,43 @@ app.post('/signin', async (req, res) => {
     const emailPesq = req.body.email
     const password = req.body.password
 
+    //RETORNA MENSAGEM DE EMAIL NÃO INFORMADO
+    if(!emailPesq){
+        res.send('Por favor insira um email')
+        return
+    }
+    
+    //RETORNA MENSAGEM DE SENHA NÃO INFORMADA
+    if(!password){
+        res.send('Por favor Informa a senha')
+        return
+    }
+
     //PROCURA POR UM USUARIO COM O CAMPO ESPECIFICADO
     const person = await Person.findOne({ email: emailPesq })
 
     //VERIFICA SE A CONTA ESTÁ CADASTRADA
     if(person){
+        //VERIFICA SE A SENHA É IGUAL A CADASTRADA QUE ESTÁ HASHEADA NO BANCO DE DADOS
+        const checkPassword = await verifyPassword(person.password, password)
 
-        //VERIFICA SE A CONTA TEM SENHA OU NÃO
-        if(person.password){
+        //CASO A SENHA FOR CORRETA
+        if(checkPassword){
+            
+            //PEGA O SECRET DA APLICAÇÃO
+            const secret = process.env.SECRET
 
-            //VERIFICA SE FOI PASSADO A SENHA OU NÃO
-            if(password){
-                //VERIFICA SE A SENHA É IGUAL A CADASTRADA QUE ESTÁ HASHEADA NO BANCO DE DADOS
-                const checkPassword = await verifyPassword(person.password, password)
-        
-                //CASO A SENHA FOR CORRETA
-                if(checkPassword){
-                    
-                    //PEGA O SECRET DA APLICAÇÃO
-                    const secret = process.env.SECRET
-        
-                    //CRIA O TOKEN DE ACESSO DO USUÁRIO
-                    const token = jwt.sign({ id: person._id }, secret)
-        
-                    //RETORNA DADOS DA CONTA COMO FEEDBACK
-                    res.send(person)
-        
-                    // res.send({msg: 'token', token: token})
-        
-                }else{
-                    //RETORNA MENSAGEM DE SENHA INCORRETA
-                    res.send('Senha incorreta')
-                }
-            }else{
-                //MANDA MENSAGEM DE ERRO CASO A CONTA PRECISE DE SENHA E NÃO FOI FORNECIDA
-                res.send('senha necessária, para acessar a conta')
-            }
-        }else{
+            //CRIA O TOKEN DE ACESSO DO USUÁRIO
+            const token = jwt.sign({ id: person._id }, secret)
+
             //RETORNA DADOS DA CONTA COMO FEEDBACK
             res.send(person)
+
+            // res.send({msg: 'token', token: token})
+
+        }else{
+            //RETORNA MENSAGEM DE SENHA INCORRETA
+            res.send('Senha incorreta')
         }
     }else{
         //RETORNA FEEDBACK NEGATIVO PARA O USUÁRIO
