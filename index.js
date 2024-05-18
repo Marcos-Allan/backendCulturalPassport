@@ -18,6 +18,7 @@ const avatares = [
 //FUNÇÃO PARA FAZER HASH DA SENHA
 async function hashPassword(password) {
     try {
+        //RETORNA A SENHA HASHEADA
         return await argon2.hash(password);
     } catch (err) {
         throw new Error('Erro ao hashear a senha');
@@ -27,6 +28,7 @@ async function hashPassword(password) {
   //FUNÇÃO PARA VERIFICAR A SENHA
     async function verifyPassword(hash, password) {
         try {
+            //VERIFICA SE A SENHA HASHEADA É IGUAL A SENHA DIGITADA
             return await argon2.verify(hash, password);
         } catch (err) {
             throw new Error('Erro ao verificar a senha');
@@ -89,7 +91,7 @@ app.post('/signup', async (req, res) => {
         //DIFICULTA A ACESSIBILIDADE DA SENHA AJUDANDO COM O HASH DA SENHA PARA SEGURANÇA DO USUÁRIO
         // const salt = await bcrypt.genSalt(12)
 
-        //CRIA O HASH DA SENHA JUNTO COM A VARIAVEL QUE AUMENTA A COMPLEXIDADE DELA
+        //USA A FUNÇÃO DE HASHEAR SENHA
         const passwordHash = await hashPassword(password)
 
         //CRIA UM NOVO USUÁRIO
@@ -122,7 +124,7 @@ app.post('/signin', async (req, res) => {
     //VERIFICA SE A CONTA ESTÁ CADASTRADA
     if(person){
         
-        //VERIFICA SE A SENHA É IGUAL A CADASTRADA QUE ESTÁ CRIPTOGRAFADA NO BANCO DE DADOS
+        //VERIFICA SE A SENHA É IGUAL A CADASTRADA QUE ESTÁ HASHEADA NO BANCO DE DADOS
         const checkPassword = await verifyPassword(person.password, password)
 
         //CASO A SENHA FOR CORRETA
@@ -132,17 +134,12 @@ app.post('/signin', async (req, res) => {
             const secret = process.env.SECRET
 
             //CRIA O TOKEN DE ACESSO DO USUÁRIO
-            const token = jwt.sign(
-                {
-                    id: person._id
-                },
-                secret
-            )
+            const token = jwt.sign({ id: person._id }, secret)
 
             //RETORNA DADOS DA CONTA COMO FEEDBACK
-            res.send(person)
+            // res.send(person)
 
-            // res.send({msg: 'token', token: token})
+            res.send({msg: 'token', token: token})
 
         }else{
             res.send('Senha incorreta, hacker fdp')
