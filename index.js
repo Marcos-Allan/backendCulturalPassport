@@ -21,17 +21,19 @@ async function hashPassword(password) {
         //RETORNA A SENHA HASHEADA
         return await argon2.hash(password);
     } catch (err) {
+        //RETORNA O ERRO DO PROCESSO DE HASHEAR SENHA
         throw new Error('Erro ao hashear a senha');
     }
 }
   
   //FUNÇÃO PARA VERIFICAR A SENHA
-    async function verifyPassword(hash, password) {
-        try {
-            //VERIFICA SE A SENHA HASHEADA É IGUAL A SENHA DIGITADA
-            return await argon2.verify(hash, password);
-        } catch (err) {
-            throw new Error('Erro ao verificar a senha');
+async function verifyPassword(hash, password) {
+    try {
+        //VERIFICA SE A SENHA HASHEADA É IGUAL A SENHA DIGITADA
+        return await argon2.verify(hash, password);
+    } catch (err) {
+        //RETORNA ERRO DE SENHA NÃO CONFERE
+        throw new Error('Erro ao verificar a senha');
     }
 }
 
@@ -61,10 +63,22 @@ app.use(express.json())
 
 //MODELO DO OBJETO DO BANCO DE DADOS
 const Person = mongoose.model('Person', {
-    name: String,
-    email: String,
-    password: String,
-    img: String,
+    name: {
+        type: String,
+        required: false
+    },
+    email: {
+        type: String,
+        required: true
+    },
+    password: {
+        type: String,
+        required: false
+    },
+    img: {
+        type: String,
+        required: false
+    },
 });
 
 //ROTA PARA FAZER SIGN-UP
@@ -87,26 +101,40 @@ app.post('/signup', async (req, res) => {
         
         return
     }else{
+        //VERIFICA SE O CRIAÇÃO DA CONTA FOI FEITA COM A SENHA OU NÃO
+        if(password){
+            //USA A FUNÇÃO DE HASHEAR SENHA
+            const passwordHash = await hashPassword(password)
 
-        //DIFICULTA A ACESSIBILIDADE DA SENHA AJUDANDO COM O HASH DA SENHA PARA SEGURANÇA DO USUÁRIO
-        // const salt = await bcrypt.genSalt(12)
+            //CRIA UM NOVO USUÁRIO
+            const person = new Person({
+                name: name,
+                email: email,
+                password: passwordHash,
+                img: img
+            });
 
-        //USA A FUNÇÃO DE HASHEAR SENHA
-        const passwordHash = await hashPassword(password)
+            //SALVA O USUÁRIO NO BANCO DE DADOS
+            await person.save()
 
-        //CRIA UM NOVO USUÁRIO
-        const person = new Person({
-            name: name,
-            email: email,
-            password: passwordHash,
-            img: img
-        });
+            //RETORNA O USUÁRIO PARA FEEDBACK
+            res.send(person)
 
-        //SALVA O USUÁRIO NO BANCO DE DADOS
-        await person.save()
+            //FORNECE OS DADOS DO USUÁRIO JÁ QUE A CONTA DELE NÃO TEM SENHA CADASTRADA
+        }else{
+            //CRIA UM NOVO USUÁRIO
+            const person = new Person({
+                name: name,
+                email: email,
+                img: img
+            });
 
-        //RETORNA O USUÁRIO PARA FEEDBACK
-        res.send(person)
+            //SALVA O USUÁRIO NO BANCO DE DADOS
+            await person.save()
+
+            //RETORNA O USUÁRIO PARA FEEDBACK
+            res.send(person)
+        }
         
         return
     }
@@ -123,30 +151,44 @@ app.post('/signin', async (req, res) => {
 
     //VERIFICA SE A CONTA ESTÁ CADASTRADA
     if(person){
+
+        //VERIFICA SE A CONTA TEM SENHA OU NÃO
+        if(person.password){
+
+            //VERIFICA SE FOI PASSADO A SENHA OU NÃO
+            if(password){
+                //VERIFICA SE A SENHA É IGUAL A CADASTRADA QUE ESTÁ HASHEADA NO BANCO DE DADOS
+                const checkPassword = await verifyPassword(person.password, password)
         
-        //VERIFICA SE A SENHA É IGUAL A CADASTRADA QUE ESTÁ HASHEADA NO BANCO DE DADOS
-        const checkPassword = await verifyPassword(person.password, password)
-
-        //CASO A SENHA FOR CORRETA
-        if(checkPassword){
-            
-            //PEGA O SECRET DA APLICAÇÃO
-            const secret = process.env.SECRET
-
-            //CRIA O TOKEN DE ACESSO DO USUÁRIO
-            const token = jwt.sign({ id: person._id }, secret)
-
+                //CASO A SENHA FOR CORRETA
+                if(checkPassword){
+                    
+                    //PEGA O SECRET DA APLICAÇÃO
+                    const secret = process.env.SECRET
+        
+                    //CRIA O TOKEN DE ACESSO DO USUÁRIO
+                    const token = jwt.sign({ id: person._id }, secret)
+        
+                    //RETORNA DADOS DA CONTA COMO FEEDBACK
+                    res.send(person)
+        
+                    // res.send({msg: 'token', token: token})
+        
+                }else{
+                    //RETORNA MENSAGEM DE SENHA INCORRETA
+                    res.send('Senha incorreta')
+                }
+            }else{
+                //MANDA MENSAGEM DE ERRO CASO A CONTA PRECISE DE SENHA E NÃO FOI FORNECIDA
+                res.send('senha necessária, para acessar a conta')
+            }
+        }else{
             //RETORNA DADOS DA CONTA COMO FEEDBACK
             res.send(person)
-
-            // res.send({msg: 'token', token: token})
-
-        }else{
-            res.send('Senha incorreta, hacker fdp')
         }
     }else{
         //RETORNA FEEDBACK NEGATIVO PARA O USUÁRIO
-        res.send('Usuario não encontrado, esse atribulado não está cadastrado')
+        res.send('Usuario não encontrado no sistema')
     }
 })
 
@@ -200,7 +242,7 @@ app.get('/user/:id', ckeckToken, async (req, res) => {
 
 //REQUISIÇÃO DE TESTE
 app.get('/', (req, res) => {
-    res.send('/')
+    res.send('/teste')
 })
 
 //LISTA TODOS OS USUÁRIOS CADASTRADOS NO BANCO DE DADOS
