@@ -104,7 +104,7 @@ app.post('/signup', async (req, res) => {
     }
     
     //MANDA MSG DE PASSWORD NÃO INFORMADO
-    if(!name){
+    if(!password){
         res.send('Por favor informe uma senha')
         return
     }
@@ -196,13 +196,19 @@ app.post('/signin_google', async (req, res) => {
     //PEGA OS DADOS PELA REQUISIÇÃO
     const emailPesq = req.body.email
     const name = req.body.name
-    
+
     //SE NÃO TIVER IMAGEM ESPECIFICADA PEGA UMA ALEATÓRIA DOS AVATARES
     const img = req.body.img || sortAvatar(avatares)
 
     //RETORNA MENSAGEM DE EMAIL NÃO INFORMADO
     if(!emailPesq){
         res.send('Por favor insira um email')
+        return
+    }
+    
+    //RETORNA MENSAGEM DE NOME NÃO INFORMADO
+    if(!name){
+        res.send('Por favor insira um nome')
         return
     }
 
