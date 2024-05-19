@@ -78,12 +78,6 @@ const Person = mongoose.model('Person', {
     img: {
         type: String,
         required: false
-    },
-    authProvider:{
-        type: String,
-        required: true,
-        enum: ['local', 'google'],
-        default: 'local'
     }
 });
 
@@ -93,7 +87,6 @@ app.post('/signup', async (req, res) => {
     const email = req.body.email
     const name = req.body.name
     const password = req.body.password
-    const authProvider = req.body.authProvider
     
     //SE NÃO TIVER IMAGEM ESPECIFICADA PEGA UMA ALEATÓRIA DOS AVATARES
     const img = req.body.img || sortAvatar(avatares)
@@ -109,6 +102,12 @@ app.post('/signup', async (req, res) => {
         res.send('Por favor informe o seu nome')
         return
     }
+    
+    //MANDA MSG DE PASSWORD NÃO INFORMADO
+    if(!name){
+        res.send('Por favor informe uma senha')
+        return
+    }
 
 
     //PROCURA POR UM USUARIO COM O CAMPO ESPECIFICADO
@@ -121,43 +120,24 @@ app.post('/signup', async (req, res) => {
         
         return
     }else{
-        if(password){
-            //USA A FUNÇÃO DE HASHEAR SENHA
-            const passwordHash = await hashPassword(password)
+        //USA A FUNÇÃO DE HASHEAR SENHA
+        const passwordHash = await hashPassword(password)
 
-            //CRIA UM NOVO USUÁRIO
-            const person = new Person({
-                name: name,
-                email: email,
-                password: passwordHash,
-                img: img
-            });
+        //CRIA UM NOVO USUÁRIO
+        const person = new Person({
+            name: name,
+            email: email,
+            password: passwordHash,
+            img: img
+        });
 
-            //SALVA O USUÁRIO NO BANCO DE DADOS
-            await person.save()
+        //SALVA O USUÁRIO NO BANCO DE DADOS
+        await person.save()
 
-            //RETORNA O USUÁRIO PARA FEEDBACK
-            res.send(person)
-            
-            return
-        }else{
-            //FAZ CADASTRO COM O GOOGLE
-            //CRIA UM NOVO USUÁRIO
-            const person = new Person({
-                name: name,
-                email: email,
-                authProvider: authProvider,
-                img: img
-            });
-
-            //SALVA O USUÁRIO NO BANCO DE DADOS
-            await person.save()
-
-            //RETORNA O USUÁRIO PARA FEEDBACK
-            res.send(person)
-            
-            return
-        }
+        //RETORNA O USUÁRIO PARA FEEDBACK
+        res.send(person)
+        
+        return
     }
 })
 
@@ -166,7 +146,55 @@ app.post('/signin', async (req, res) => {
     //PEGA OS DADOS PELA REQUISIÇÃO
     const emailPesq = req.body.email
     const password = req.body.password
-    const authProvider = req.body.authProvider
+
+    //RETORNA MENSAGEM DE EMAIL NÃO INFORMADO
+    if(!emailPesq){
+        res.send('Por favor insira um email')
+        return
+    }
+    
+    //RETORNA MENSAGEM DE SENHA NÃO INFORMADA
+    if(!password){
+        res.send('Por favor insira sua senha')
+        return
+    }
+
+    //PROCURA POR UM USUARIO COM O CAMPO ESPECIFICADO
+    const person = await Person.findOne({ email: emailPesq })
+
+    //VERIFICA SE A CONTA ESTÁ CADASTRADA
+    if(person){
+        //VERIFICA SE A SENHA É IGUAL A CADASTRADA QUE ESTÁ HASHEADA NO BANCO DE DADOS
+        const checkPassword = await verifyPassword(person.password, password)
+
+        //CASO A SENHA FOR CORRETA
+        if(checkPassword){
+            
+            //PEGA O SECRET DA APLICAÇÃO
+            const secret = process.env.SECRET
+
+            //CRIA O TOKEN DE ACESSO DO USUÁRIO
+            // const token = jwt.sign({ id: person._id }, secret)
+
+            // res.send({msg: 'token', token: token})
+
+            //RETORNA DADOS DA CONTA COMO FEEDBACK
+            res.send(person)
+
+        }else{
+            //RETORNA MENSAGEM DE SENHA INCORRETA
+            res.send('Senha incorreta')
+        }
+        //VÊ SE O MÉTODO DE AUTENTICAÇÃO FOI COM O 'GOOGLE'
+    }else{
+        //RETORNA FEEDBACK NEGATIVO PARA O USUÁRIO
+        res.send('Usuario não encontrado no sistema')
+    }
+})
+
+app.post('/signin_google', async (req, res) => {
+    //PEGA OS DADOS PELA REQUISIÇÃO
+    const emailPesq = req.body.email
 
     //RETORNA MENSAGEM DE EMAIL NÃO INFORMADO
     if(!emailPesq){
@@ -179,34 +207,10 @@ app.post('/signin', async (req, res) => {
 
     //VERIFICA SE A CONTA ESTÁ CADASTRADA
     if(person){
-        //VÊ SE O MÉTODO DE AUTENTICAÇÃO FOI COM O 'LOCAL'
-        if(person.authProvider == 'local'){
-            //VERIFICA SE A SENHA É IGUAL A CADASTRADA QUE ESTÁ HASHEADA NO BANCO DE DADOS
-            const checkPassword = await verifyPassword(person.password, password)
-
-            //CASO A SENHA FOR CORRETA
-            if(checkPassword){
-                
-                //PEGA O SECRET DA APLICAÇÃO
-                const secret = process.env.SECRET
-
-                //CRIA O TOKEN DE ACESSO DO USUÁRIO
-                // const token = jwt.sign({ id: person._id }, secret)
-
-                // res.send({msg: 'token', token: token})
-
-                //RETORNA DADOS DA CONTA COMO FEEDBACK
-                res.send(person)
-
-            }else{
-                //RETORNA MENSAGEM DE SENHA INCORRETA
-                res.send('Senha incorreta')
-            }
-            //VÊ SE O MÉTODO DE AUTENTICAÇÃO FOI COM O 'GOOGLE'
-        }else if(person.authProvider == 'google'){
-            //RETORNA DADOS DA CONTA COMO FEEDBACK
-            res.send(person)
-        }
+        
+        //RETORNA DADOS DA CONTA COMO FEEDBACK
+        res.send(person)
+        
     }else{
         //RETORNA FEEDBACK NEGATIVO PARA O USUÁRIO
         res.send('Usuario não encontrado no sistema')
