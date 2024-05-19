@@ -232,8 +232,8 @@ app.post('/signin_google', async (req, res) => {
         //SALVA O USUÁRIO NO BANCO DE DADOS
         await person.save()
 
-        //RETORNA FEEDBACK NEGATIVO PARA O USUÁRIO
-        res.send('Usuario cadastrado no sistema')
+        //RETORNA DADOS DA CONTA COMO FEEDBACK
+        res.send(person)
     }
 })
 
