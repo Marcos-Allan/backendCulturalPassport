@@ -195,6 +195,10 @@ app.post('/signin', async (req, res) => {
 app.post('/signin_google', async (req, res) => {
     //PEGA OS DADOS PELA REQUISIÇÃO
     const emailPesq = req.body.email
+    const name = req.body.name
+    
+    //SE NÃO TIVER IMAGEM ESPECIFICADA PEGA UMA ALEATÓRIA DOS AVATARES
+    const img = req.body.img || sortAvatar(avatares)
 
     //RETORNA MENSAGEM DE EMAIL NÃO INFORMADO
     if(!emailPesq){
@@ -212,8 +216,18 @@ app.post('/signin_google', async (req, res) => {
         res.send(person)
         
     }else{
+        //CRIA UM NOVO USUÁRIO
+        const person = new Person({
+            name: name,
+            email: emailPesq,
+            img: img
+        });
+
+        //SALVA O USUÁRIO NO BANCO DE DADOS
+        await person.save()
+
         //RETORNA FEEDBACK NEGATIVO PARA O USUÁRIO
-        res.send('Usuario não encontrado no sistema')
+        res.send('Usuario cadastrado no sistema')
     }
 })
 
