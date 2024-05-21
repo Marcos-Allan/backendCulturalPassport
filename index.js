@@ -164,28 +164,33 @@ app.post('/signin', async (req, res) => {
 
     //VERIFICA SE A CONTA ESTÁ CADASTRADA
     if(person){
-        //VERIFICA SE A SENHA É IGUAL A CADASTRADA QUE ESTÁ HASHEADA NO BANCO DE DADOS
-        const checkPassword = await verifyPassword(person.password, password)
+        if(person.password){
+            //VERIFICA SE A SENHA É IGUAL A CADASTRADA QUE ESTÁ HASHEADA NO BANCO DE DADOS
+            const checkPassword = await verifyPassword(person.password, password)
 
-        //CASO A SENHA FOR CORRETA
-        if(checkPassword){
-            
-            //PEGA O SECRET DA APLICAÇÃO
-            const secret = process.env.SECRET
+            //CASO A SENHA FOR CORRETA
+            if(checkPassword){
+                
+                //PEGA O SECRET DA APLICAÇÃO
+                const secret = process.env.SECRET
 
-            //CRIA O TOKEN DE ACESSO DO USUÁRIO
-            // const token = jwt.sign({ id: person._id }, secret)
+                //CRIA O TOKEN DE ACESSO DO USUÁRIO
+                // const token = jwt.sign({ id: person._id }, secret)
 
-            // res.send({msg: 'token', token: token})
+                // res.send({msg: 'token', token: token})
 
-            //RETORNA DADOS DA CONTA COMO FEEDBACK
-            res.send(person)
+                //RETORNA DADOS DA CONTA COMO FEEDBACK
+                res.send(person)
 
+            }else{
+                //RETORNA MENSAGEM DE SENHA INCORRETA
+                res.send('Senha incorreta')
+            }
         }else{
-            //RETORNA MENSAGEM DE SENHA INCORRETA
-            res.send('Senha incorreta')
+            //VÊ SE O MÉTODO DE AUTENTICAÇÃO FOI COM O 'GOOGLE'
+            res.send('Usuário cadastrado com a conta do google')
+            return
         }
-        //VÊ SE O MÉTODO DE AUTENTICAÇÃO FOI COM O 'GOOGLE'
     }else{
         //RETORNA FEEDBACK NEGATIVO PARA O USUÁRIO
         res.send('Usuario não encontrado no sistema')
@@ -325,10 +330,11 @@ app.get('/users/:email', async (req, res) => {
 app.put('/users/update/:id', async (req, res) => {
     //PEGA OS DADOS PELA REQUISIÇÃO
     const id = req.params.id
-    const update = req.body
+    const name = req.body.name
+    const img = req.body.img
 
     //PROCURA POR UM USUARIO COM O CAMPO ESPECIFICADO E ATUALIZA
-    const person = await Person.findByIdAndUpdate(id, update, { new: true })
+    const person = await Person.findByIdAndUpdate(id, {name, img}, { new: true })
     
     //RETORNA O RESULTADO DA REQUISIÇÃO
     res.send(person)
