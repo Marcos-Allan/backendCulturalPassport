@@ -7,33 +7,36 @@ const nodemailer = require('nodemailer')
 const argon2 = require('argon2')
 const jwt = require('jsonwebtoken')
 
+//CONFIGURAÇÃO DO NODEMAILER E DO SERVIDOR DO GMAIL PARA ENVIAR OS EMAILS
 const smtp = nodemailer.createTransport({
     host: "smtp.gmail.com",
-    port: 587,
+    port: 465,
     secure: true,
     auth: {
         user: "allanmenezes880@gmail.com",
-        pass: "MLn%837W",
+        pass: "rxgb bzxb aukg yiog",
     }
 })
 
-const configEmail = {
-    from: "allanmenezes880@gmail.com",
-    to: "devmarcosallan@gmail.com",
-    subject: "recuperação de senha da sua conta do cultural passport",
-    html: "<h1>Código de confiramação 669-669</h1>",
-}
-
+//FUNÇÃO RESPONSÁVEL POR ENVIAR EMAIL
 function sendEmail() {
-    new Promise((resolve, reject) => {
-        smtp.sendMail(configEmail)
-        .then((res) => {
-            smtp.close()
-            return resolve(res)
-        }).catch((error) => {
-            console.log(error)
-            smtp.close()
-        })
+
+    //FUNÇÃO QUE ENVIA O EMAIL COM A CONFIGURAÇÃO ABAIXO
+    smtp.sendMail({ 
+        from: "Allan Menezes <allanmenezes880@gmail.com>",
+        to: "devmarcosallan@gmail.com",
+        subject: "recuperação de senha da sua conta do cultural passport",
+        html: "<h1>Código de confirmação 669-669</h1>",
+        text: "o HTML não deu certo, Código de confirmação 669-669"
+    })
+    .then(() => {
+        //CASO O EMAIL FOR ENVIADO ELE MOSTRA EESSA MENSAGEM
+        console.log("Email enviado com sucesso!")
+        return
+    }).catch((error) => {
+        //CASO O EMAIL NÃO FOR ENVIADO MOSTRA ESSA MENSAGEM
+        console.log("Algo deu errado no envio do email: ", error)
+        return
     })
 }
 
@@ -328,24 +331,10 @@ app.get('/', (req, res) => {
     res.send('/teste')
 })
 
-//REQUISIÇÃO DE TESTE
+//REQUISIÇÃO DE TESTE DE ENVIO DE EMAILS
 app.get('/ff', async (req, res) => {
-    new Promise((resolve, reject) => {
-        smtp.sendMail(configEmail)
-        .then((res) => {
-            smtp.close()
-            resolve(res)
-            res.send(res)
-            return 
-        }).catch((error) => {
-            console.log(error)
-            res.send(error)
-            smtp.close()
-            return
-        })
-        
-    })
-
+    //CAMA A FUNÇÃO QUE MANDA EMAIL
+    sendEmail()
 })
 
 //LISTA TODOS OS USUÁRIOS CADASTRADOS NO BANCO DE DADOS
@@ -404,8 +393,6 @@ app.delete('/users/delete/:id', async (req, res) => {
     //RETORNA O RESULTADO DA REQUISIÇÃO
     res.send(person)
 })
-
-
 
 //RODA O SERVIDOR NA PORTA ESPECIFICADA
 app.listen(port, () => {
