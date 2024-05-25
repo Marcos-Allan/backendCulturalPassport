@@ -2,9 +2,41 @@
 const express = require('express')
 const cors = require('cors')
 const mongoose = require('mongoose')
-// const bcrypt = require('bcrypt')
+const nodemailer = require('nodemailer')
+
 const argon2 = require('argon2')
 const jwt = require('jsonwebtoken')
+
+const smtp = nodemailer.createTransport({
+    host: "smtp.gmail.com",
+    port: 587,
+    secure: true,
+    auth: {
+        user: "allanmenezes880@gmail.com",
+        pass: "MLn%837W",
+    }
+})
+
+const configEmail = {
+    from: "allanmenezes880@gmail.com",
+    to: "devmarcosallan@gmail.com",
+    subject: "recuperação de senha da sua conta do cultural passport",
+    html: "<h1>Código de confiramação 669-669</h1>",
+}
+
+function sendEmail() {
+    new Promise((resolve, reject) => {
+        smtp.sendMail(configEmail)
+        .then((res) => {
+            smtp.close()
+            return resolve(res)
+        }).catch((error) => {
+            console.log(error)
+            smtp.close()
+        })
+    })
+}
+
 
 //AVATARES FOTOS
 const avatares = [
@@ -197,6 +229,7 @@ app.post('/signin', async (req, res) => {
     }
 })
 
+//ROTA PARA FAZER SIGN-IN CASO JA TENAH CONTA OU SIGN-UP CASO NÃO TENHA CONTA UTILIZANDO O GOOGLE
 app.post('/signin_google', async (req, res) => {
     //PEGA OS DADOS PELA REQUISIÇÃO
     const emailPesq = req.body.email
@@ -295,6 +328,26 @@ app.get('/', (req, res) => {
     res.send('/teste')
 })
 
+//REQUISIÇÃO DE TESTE
+app.get('/ff', async (req, res) => {
+    new Promise((resolve, reject) => {
+        smtp.sendMail(configEmail)
+        .then((res) => {
+            smtp.close()
+            resolve(res)
+            res.send(res)
+            return 
+        }).catch((error) => {
+            console.log(error)
+            res.send(error)
+            smtp.close()
+            return
+        })
+        
+    })
+
+})
+
 //LISTA TODOS OS USUÁRIOS CADASTRADOS NO BANCO DE DADOS
 app.get('/users', async (req, res) => {
     //PEGA OS DADOS DE TODOS OS USUARIOS E LISTA UM POR UM
@@ -351,6 +404,8 @@ app.delete('/users/delete/:id', async (req, res) => {
     //RETORNA O RESULTADO DA REQUISIÇÃO
     res.send(person)
 })
+
+
 
 //RODA O SERVIDOR NA PORTA ESPECIFICADA
 app.listen(port, () => {
