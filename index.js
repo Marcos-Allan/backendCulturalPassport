@@ -339,7 +339,7 @@ app.get('/', (req, res) => {
 })
 
 //REQUISIÇÃO DE TESTE DE ENVIO DE EMAILS
-app.get('/forgoutpassword:email', async (req, res) => {
+app.get('/forgoutpassword/:email', async (req, res) => {
     //PEGA OS DADOS PELA REQUISIÇÃO
     const email = req.params.email
 
