@@ -34,8 +34,8 @@ function sendEmail(emailReceiver, code) {
         from: "Allan Menezes <allanmenezes880@gmail.com>",
         to: emailReceiver,
         subject: "recuperação de senha da sua conta do Cultural Passport",
-        html: `<h1>Código de confirmação 669-669</h1>`,
-        text: `o HTML não deu certo, Código de confirmação ${code}`
+        html: `<h1>Código de confirmação ${code}</h1>`,
+        text: `Código de confirmação ${code}`
     })
     .then(() => {
         //CASO O EMAIL FOR ENVIADO ELE MOSTRA EESSA MENSAGEM
