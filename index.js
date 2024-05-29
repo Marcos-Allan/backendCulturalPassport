@@ -7,27 +7,35 @@ const nodemailer = require('nodemailer')
 const argon2 = require('argon2')
 const jwt = require('jsonwebtoken')
 
+//INICIA A VARIAVEL COMO code COMO VAZIA
+let code
+
 //CONFIGURAÇÃO DO NODEMAILER E DO SERVIDOR DO GMAIL PARA ENVIAR OS EMAILS
 const smtp = nodemailer.createTransport({
-    host: "smtp.gmail.com",
+    host: process.env.HOST_GMAIL,
     port: 465,
     secure: true,
     auth: {
-        user: "allanmenezes880@gmail.com",
-        pass: "rxgb bzxb aukg yiog",
+        user: process.env.EMAIL_SENDER,
+        pass: process.env.CODE_EMAIL,
     }
 })
 
+//FUNÇÃO RESPONSÁVEL POR CRIAR NÚMEROS ALEATÓRIOS
+function randomNumber(){
+    return Math.floor(Math.random() * 10)
+}
+
 //FUNÇÃO RESPONSÁVEL POR ENVIAR EMAIL
-function sendEmail() {
+function sendEmail(emailReceiver, code) {
 
     //FUNÇÃO QUE ENVIA O EMAIL COM A CONFIGURAÇÃO ABAIXO
     smtp.sendMail({ 
         from: "Allan Menezes <allanmenezes880@gmail.com>",
-        to: "devmarcosallan@gmail.com",
-        subject: "recuperação de senha da sua conta do cultural passport",
-        html: "<h1>Código de confirmação 669-669</h1>",
-        text: "o HTML não deu certo, Código de confirmação 669-669"
+        to: emailReceiver,
+        subject: "recuperação de senha da sua conta do Cultural Passport",
+        html: `<h1>Código de confirmação 669-669</h1>`,
+        text: `o HTML não deu certo, Código de confirmação ${code}`
     })
     .then(() => {
         //CASO O EMAIL FOR ENVIADO ELE MOSTRA EESSA MENSAGEM
@@ -39,7 +47,6 @@ function sendEmail() {
         return
     })
 }
-
 
 //AVATARES FOTOS
 const avatares = [
@@ -332,9 +339,48 @@ app.get('/', (req, res) => {
 })
 
 //REQUISIÇÃO DE TESTE DE ENVIO DE EMAILS
-app.get('/ff', async (req, res) => {
-    //CAMA A FUNÇÃO QUE MANDA EMAIL
-    sendEmail()
+app.get('/forgoutpassword:email', async (req, res) => {
+    //PEGA OS DADOS PELA REQUISIÇÃO
+    const email = req.params.email
+
+    //PROCURA POR UM USUARIO COM O CAMPO ESPECIFICADO
+    const person = await Person.findOne({ email: email })
+
+    //VERIFICA SE A CONTA JÁ ESTÁ CADASTRADA NO BANCO DE DADOS
+    if(person){
+        //GERA UM CÓDIGO DE VERIFICAÇÃO
+        code = `${randomNumber()}${randomNumber()}${randomNumber()}-${randomNumber()}${randomNumber()}${randomNumber()}`
+        
+        //CAMA A FUNÇÃO QUE MANDA EMAIL
+        sendEmail(email, code)
+
+        //RETORNA MENSAGEM PARA O USUÁRIO
+        res.send('Código enviado para o email informado')
+        
+        return
+    }else{
+        //RETORNA ERRO DE CONTA NÃO ENCONTRADA
+        res.send('Usuário não encontrado')
+        
+        return
+    }
+})
+
+//REQUISIÇÃO DE TESTE DE ENVIO DE EMAILS
+app.get('/verifycode', async (req, res) => {
+    //PEGA OS DADOS PELA REQUISIÇÃO
+    const codeUser = req.params.code
+    
+    //VERIFICA SE O CÓDIGO ESTÁ CORRETO
+    if(code == codeUser){
+        //RETORNA MENSAGEM DE SUCESSO PARA O USUÁRIO
+        res.send('Código de verificação correto')
+        return
+    }else{
+        //RETORNA MENSAGEM DE ERRO PARA O USUÁRIO
+        res.send('Código de verificação errado')
+        return
+    }
 })
 
 //LISTA TODOS OS USUÁRIOS CADASTRADOS NO BANCO DE DADOS
