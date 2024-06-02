@@ -68,7 +68,7 @@ async function hashPassword(password) {
     }
 }
   
-  //FUNÇÃO PARA VERIFICAR A SENHA
+//FUNÇÃO PARA VERIFICAR A SENHA
 async function verifyPassword(hash, password) {
     try {
         //VERIFICA SE A SENHA HASHEADA É IGUAL A SENHA DIGITADA
@@ -367,7 +367,7 @@ app.get('/forgoutpassword/:email', async (req, res) => {
 })
 
 //REQUISIÇÃO DE TESTE DE ENVIO DE EMAILS
-app.get('/verifycode', async (req, res) => {
+app.get('/verifycode/:code', async (req, res) => {
     //PEGA OS DADOS PELA REQUISIÇÃO
     const codeUser = req.params.code
     
