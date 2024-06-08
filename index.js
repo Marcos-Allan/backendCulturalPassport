@@ -383,7 +383,7 @@ app.get('/forgoutpassword/:email', async (req, res) => {
         sendEmail(email, code)
 
         //RETORNA MENSAGEM PARA O USUÁRIO
-        res.send('Código enviado para o email informado')
+        res.send({ message: 'Código enviado para o email informado', user: person })
         
         return
     }else{
