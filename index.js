@@ -32,11 +32,10 @@ const express = require('express')
 const cors = require('cors')
 const mongoose = require('mongoose')
 const nodemailer = require('nodemailer')
-
 const argon2 = require('argon2')
 const jwt = require('jsonwebtoken')
 
-//INICIA A VARIAVEL COMO code COMO VAZIA
+//INICIA A VARIAVEL code COMO VAZIA
 let code
 
 //CONFIGURAÇÃO DO NODEMAILER E DO SERVIDOR DO GMAIL PARA ENVIAR OS EMAILS
@@ -447,12 +446,14 @@ app.get('/users/:email', async (req, res) => {
 app.put('/users/update/:id', async (req, res) => {
     //PEGA OS DADOS PELA REQUISIÇÃO
     const id = req.params.id
-    const name = req.body.name
-    const img = req.body.img
+    const { name, email, img, password } = req.body
+
+    //USA A FUNÇÃO DE HASHEAR SENHA
+    const passwordHash = password ? await hashPassword(password) : password
 
     //PROCURA POR UM USUARIO COM O CAMPO ESPECIFICADO E ATUALIZA
-    const person = await Person.findByIdAndUpdate(id, {name, img}, { new: true })
-    
+    const person = await Person.findByIdAndUpdate(id, { name, email, img, password : passwordHash }, { new: true })
+
     //RETORNA O RESULTADO DA REQUISIÇÃO
     res.send(person)
 })
