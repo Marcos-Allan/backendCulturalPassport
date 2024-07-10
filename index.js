@@ -34,6 +34,8 @@ const cors = require('cors')
 //INICIA A APLICAÇÃO USANDO A BIBLIOTECA EXPRESS
 const app = express()
 
+//DISPONIBILIZA A PASTA DE ARQUIVOS COMO PÚBLICA
+app.use('/uploads', express.static('uploads'))
 
 //INICIA AS VARIÁVEIS DE AMBIENTE PARA SEGURANÇA DA APLICAÇÃO
 require('dotenv').config()
