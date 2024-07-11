@@ -55,9 +55,11 @@ app.use(express.json())
 //IMPORTAÇÃO DAS ROTAS SEPARADAS POR MODELS
 const pictureRouter = require('./routes/picture')
 const personRouter = require('./routes/person')
+const contentRouter = require('./routes/content')
 
 //DETERMINA A ROTA PADRÃO E UTILIZA A PARTIR DA ROTA DEFINIDA
 app.use('/pictures', pictureRouter)
+app.use('/content', contentRouter)
 app.use('/', personRouter)
 
 //RODA O SERVIDOR NA PORTA ESPECIFICADA
