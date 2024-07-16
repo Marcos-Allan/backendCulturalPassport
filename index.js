@@ -56,10 +56,14 @@ app.use(express.json())
 const pictureRouter = require('./routes/picture')
 const personRouter = require('./routes/person')
 const contentRouter = require('./routes/content')
+const simulationRouter = require('./routes/simulation')
+const achievementRouter = require('./routes/achievement')
 
 //DETERMINA A ROTA PADRÃO E UTILIZA A PARTIR DA ROTA DEFINIDA
 app.use('/pictures', pictureRouter)
 app.use('/content', contentRouter)
+app.use('/simulation', simulationRouter)
+app.use('/achievement', achievementRouter)
 app.use('/', personRouter)
 
 //RODA O SERVIDOR NA PORTA ESPECIFICADA
