@@ -368,13 +368,31 @@ exports.searchUserByEmail = async (req, res) => {
 exports.updateUserById = async (req, res) => {
     //PEGA OS DADOS PELA REQUISIÇÃO
     const id = req.params.id
-    const { name, email, img, password } = req.body
+    const { name, email, img, password, simulation } = req.body
 
     //USA A FUNÇÃO DE HASHEAR SENHA
     const passwordHash = password ? await hashPassword(password) : password
 
-    //PROCURA POR UM USUARIO COM O CAMPO ESPECIFICADO E ATUALIZA
-    const person = await Person.findByIdAndUpdate(id, { name, email, img, password : passwordHash }, { new: true })
+    // const person = await Person.findByIdAndUpdate(id, { name, email, img, password : passwordHash }, { new: true })
+    
+    //PROCURA POR UM USUARIO COM O CAMPO ESPECIFICADO
+    const person = await Person.findById(id);
+
+    //RETORNA MENSAGEM DE ERRO
+    if (!person) {
+        return res.send('Usuário não encontrado' );
+    }
+
+    //ATUALIZA OS DADOS DO USUÁRIO
+    if (name) person.name = name;
+    if (email) person.email = email;
+    if (img) person.img = img;
+    if (passwordHash) person.password = passwordHash;
+
+    //ADICIONA UM NOVO ITEM NO ARRAY DE SIMULADOS
+    if (simulation) {
+      person.simulations.push(simulation);
+    }
 
     //RETORNA O RESULTADO DA REQUISIÇÃO
     res.send(person)
