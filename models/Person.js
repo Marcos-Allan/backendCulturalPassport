@@ -43,7 +43,7 @@ const mongoose = require("mongoose")
 //DECLARA UMA VARIÁVEL COMO UM SCHEMA A SER DEFINIDO
 const Schema = mongoose.Schema
 
-//DECLARA O SCHEMA DO USUÁRIO
+//DECLARA O SCHEMA DOS SIMULADOS DO USUÁRIO
 const SimulationSchema = new Schema({
     name: {
         type: String,
@@ -73,8 +73,16 @@ const PersonSchema = new Schema({
         type: String,
         required: false
     },
+    login_type: {
+        type: String,
+        default: 'local'
+    },
     simulations: {
         type: [SimulationSchema],
+        default: []
+    },
+    cronogram: {
+        type: [String],
         default: []
     },
     simulationsConcludeds: {

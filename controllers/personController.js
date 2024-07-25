@@ -255,7 +255,8 @@ exports.signInGoogle = async (req, res) => {
         const person = new Person({
             name: name,
             email: emailPesq,
-            img: img
+            img: img,
+            login_type: 'google'
         });
 
         //SALVA O USUÁRIO NO BANCO DE DADOS
@@ -368,12 +369,10 @@ exports.searchUserByEmail = async (req, res) => {
 exports.updateUserById = async (req, res) => {
     //PEGA OS DADOS PELA REQUISIÇÃO
     const id = req.params.id
-    const { name, email, img, password, simulation } = req.body
+    const { name, email, img, password, simulation, cronogram } = req.body
 
     //USA A FUNÇÃO DE HASHEAR SENHA
     const passwordHash = password ? await hashPassword(password) : password
-
-    // const person = await Person.findByIdAndUpdate(id, { name, email, img, password : passwordHash }, { new: true })
     
     //PROCURA POR UM USUARIO COM O CAMPO ESPECIFICADO
     const person = await Person.findById(id);
@@ -392,6 +391,11 @@ exports.updateUserById = async (req, res) => {
     //ADICIONA UM NOVO ITEM NO ARRAY DE SIMULADOS
     if (simulation) {
       person.simulations.push(simulation);
+    }
+    
+    //ADICIONA UM NOVO ITEM NO ARRAY DO CRONOGRAMA
+    if (cronogram) {
+      person.cronogram.push(cronogram);
     }
 
     //RETORNA O RESULTADO DA REQUISIÇÃO
