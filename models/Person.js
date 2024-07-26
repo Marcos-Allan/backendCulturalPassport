@@ -82,8 +82,8 @@ const PersonSchema = new Schema({
         default: []
     },
     cronogram: {
-        type: [String],
-        default: []
+        type: String,
+        default: ''
     },
     simulationsConcludeds: {
         type: Number,

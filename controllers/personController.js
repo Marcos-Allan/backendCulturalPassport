@@ -387,16 +387,15 @@ exports.updateUserById = async (req, res) => {
     if (email) person.email = email;
     if (img) person.img = img;
     if (passwordHash) person.password = passwordHash;
+    if (cronogram) person.cronogram = cronogram;
 
     //ADICIONA UM NOVO ITEM NO ARRAY DE SIMULADOS
     if (simulation) {
       person.simulations.push(simulation);
     }
-    
-    //ADICIONA UM NOVO ITEM NO ARRAY DO CRONOGRAMA
-    if (cronogram) {
-      person.cronogram.push(cronogram);
-    }
+
+    //SALVA O USUÁRIO NO BANCO DE DADOS
+    await person.save()
 
     //RETORNA O RESULTADO DA REQUISIÇÃO
     res.send(person)
