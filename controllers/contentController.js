@@ -38,25 +38,21 @@ exports.create = async (req, res) => {
 
 //ROTA PARA LISTAR UM CONTEUDO ESPECIFICO
 exports.getOne = async (req, res) => {
-    try {
-        //PROCURA O CONTEUDO PELO NOME PASSSADO POR PARÂMETRO
-        const contents = await Content.findOne({ name: req.params.filename });
-        
-        //VERIFICA SE O CONTEUDO EXISTE OU NÃO
-        if (contents) {
-            //RETORNA O CONTEUDO ESPECIFICADO
-            res.json({ content: contents.archive });
-        }
-        
-        //RETORNA MENSAGEM DE ERRO 404 USUÁRIO NÃO ENCONTRADO
+    //PEGA OS DADOS PELA REQUISIÇÃO
+    const filename = req.params.filename
+
+    //PROCURA O CONTEUDO PELO NOME PASSSADO POR PARÂMETRO
+    const contentC = await Content.findOne({ name: filename });
+    
+    //VERIFICA SE O CONTEUDO EXISTE OU NÃO
+    if (contentC) {
+        //RETORNA O CONTEUDO ESPECIFICADO
+        res.json({ content: contentC.archive});
+    }else{
+        //RETORNA MENSAGEM DE ERRO 404 CONTEUDO NÃO ENCONTRADO
         return res.status(404).send('Arquivo não encontrado');
-    } catch (error) {
-        //RETORNA UMA MENSAGEM DE ERRO
-        console.error('Erro ao buscar o arquivo:', error);
-        
-        //RETORNA UMA MENSAGEM DE ERRO
-        res.status(500).send('Erro ao buscar o arquivo');
     }
+    
 }
 
 //ROTA PARA LISTAR TODOS OS CONTEUDOS
