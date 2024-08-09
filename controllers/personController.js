@@ -187,6 +187,7 @@ exports.signIn = async (req, res) => {
 
     //VERIFICA SE A CONTA ESTÁ CADASTRADA
     if(person){
+        //VERIFICA SE A CONTA É DO GOOGLE OU NÃO
         if(person.password){
             //VERIFICA SE A SENHA É IGUAL A CADASTRADA QUE ESTÁ HASHEADA NO BANCO DE DADOS
             const checkPassword = await verifyPassword(person.password, password)
@@ -247,8 +248,15 @@ exports.signInGoogle = async (req, res) => {
     //VERIFICA SE A CONTA ESTÁ CADASTRADA
     if(person){
         
-        //RETORNA DADOS DA CONTA COMO FEEDBACK
-        res.send(person)
+        //VERIFICA RE A CONTA ESTÁ CADASTRADA COM O GOOGLE OU NÃO
+        if(person.password){
+            //RETORNA MENSAGEM DE ERRO
+            res.send('Conta já cadastrada com email e senha')
+            return
+        }else{
+            //RETORNA DADOS DA CONTA COMO FEEDBACK
+            res.send(person)
+        }
         
     }else{
         //CRIA UM NOVO USUÁRIO
@@ -299,16 +307,25 @@ exports.forgoutPassword = async (req, res) => {
 
     //VERIFICA SE A CONTA JÁ ESTÁ CADASTRADA NO BANCO DE DADOS
     if(person){
-        //GERA UM CÓDIGO DE VERIFICAÇÃO
-        code = `${randomNumber()}${randomNumber()}${randomNumber()}-${randomNumber()}${randomNumber()}${randomNumber()}`
-        
-        //CAMA A FUNÇÃO QUE MANDA EMAIL
-        sendEmail(email, code)
+        //VERIFICA SE É UMA CONTA GOOGLE
+        if(person.password){
 
-        //RETORNA MENSAGEM PARA O USUÁRIO
-        res.send({ message: 'Código enviado para o email informado', user: person })
+            //GERA UM CÓDIGO DE VERIFICAÇÃO
+            code = `${randomNumber()}${randomNumber()}${randomNumber()}-${randomNumber()}${randomNumber()}${randomNumber()}`
         
-        return
+            //CAMA A FUNÇÃO QUE MANDA EMAIL
+            sendEmail(email, code)
+
+            //RETORNA MENSAGEM PARA O USUÁRIO
+            res.send({ message: 'Código enviado para o email informado', user: person })
+            
+            return
+
+        }else{
+            //RETORNA MENSAGEM DE ERRO
+            res.send('Conta já cadastrada com email e senha')
+            return
+        }
     }else{
         //RETORNA ERRO DE CONTA NÃO ENCONTRADA
         res.send('Usuário não encontrado')
