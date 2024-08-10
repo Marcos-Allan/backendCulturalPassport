@@ -1,7 +1,7 @@
 //IMPORTAÇÃO DO MODELO DO BANCO DE DADOS
 const Achievement = require("../models/Achievement")
 
-//ROTA PARA LISTAR TODOS OS SIMULADOS
+//ROTA PARA SALVAR ARQUIVO NO  SERVIDOR
 exports.getOne = async (req, res) => {
     //PEGA OS DADOS PELA REQUISIÇÃO
     const title = req.params.title;
@@ -17,7 +17,7 @@ exports.getOne = async (req, res) => {
     }
 }
 
-//ROTA PARA SALVAR ARQUIVO NO  SERVIDOR
+//ROTA PARA CRIAR CONQUISTA
 exports.create = async (req, res) => {
     //PEGA OS DADOS PELA REQUISIÇÃO
     const { title, message, imgURL, level, porcentage } = req.body
@@ -43,7 +43,7 @@ exports.create = async (req, res) => {
     }
 }
 
-//ROTA PARA CRIAR CONQUISTA
+//ROTA PARA LISTAR TODOS OS SIMULADOS
 exports.listAll = async (req, res) => {
     try {
         const achievements = await Achievement.find()
