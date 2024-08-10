@@ -10,12 +10,12 @@ const ContentSchema = new Schema({
 });
 
 //DECLARA O SCHEMA DO SIMULADO
-const SimulationSchema = new Schema({
+const MatterSchema = new Schema({
     matter: {
         type: String,
         required: true
     },
-    quests: [ContentSchema],
+    contents: [ContentSchema],
 });
 
-module.exports = mongoose.model('Simulation', SimulationSchema);
+module.exports = mongoose.model('Matter', MatterSchema);

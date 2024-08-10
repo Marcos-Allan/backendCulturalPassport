@@ -59,6 +59,7 @@ const contentRouter = require('./routes/content')
 const simulationRouter = require('./routes/simulation')
 const achievementRouter = require('./routes/achievement')
 const exerciseRouter = require('./routes/exercise')
+const matterRouter = require('./routes/matter')
 
 //DETERMINA A ROTA PADRÃO E UTILIZA A PARTIR DA ROTA DEFINIDA
 app.use('/pictures', pictureRouter)
@@ -66,6 +67,7 @@ app.use('/content', contentRouter)
 app.use('/simulation', simulationRouter)
 app.use('/achievement', achievementRouter)
 app.use('/exercise', exerciseRouter)
+app.use('/matter', matterRouter)
 app.use('/', personRouter)
 
 //RODA O SERVIDOR NA PORTA ESPECIFICADA
