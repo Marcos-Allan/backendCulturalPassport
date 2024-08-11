@@ -30,9 +30,13 @@
 //IMPORTA AS BIBLIOTECAS BAIXADAS E NECESSÁRIAS PARA RODAR A APLICAÇÃO
 const express = require('express')
 const cors = require('cors')
+const http = require('http');
 
 //INICIA A APLICAÇÃO USANDO A BIBLIOTECA EXPRESS
 const app = express()
+
+//CRIA UMA INSTÂNCIA DO SERVIDOR
+const server = http.createServer(app);
 
 //DISPONIBILIZA A PASTA DE ARQUIVOS COMO PÚBLICA
 app.use('/uploads', express.static('uploads'))
@@ -42,6 +46,12 @@ require('dotenv').config()
 
 //IMPORTAÇÃO DOS MEUS ARQUIVOS SEPARADOS
 require("./db")
+
+//IMPORTAÇÃO DA BIBLIOTECA DO WebSocket
+const WebSocket = require('ws');
+
+//INICAIALIZAÇÃO DO SERVIÇO WebSocket
+const wss = new WebSocket.Server({ server });
 
 //INICIA A VARIAVEL PORTA COM O VALOR DA VARIAVEL DE AMBIENTE OU NA 8080
 const port = process.env.PORT || 3000
@@ -70,8 +80,27 @@ app.use('/exercise', exerciseRouter)
 app.use('/matter', matterRouter)
 app.use('/', personRouter)
 
+//LÓGICA WebSocket
+wss.on('connection', (ws) => {
+    console.log('conectado');
+
+    //EVENTO DE MENSAGEM WebSocket
+    ws.on('message', (message) => {
+      console.log(`WebSocket mensagem recebida: ${message}`);
+      wss.clients.forEach((client) => client.send(message))
+    });
+  
+    //EVENTO DE FECHAR CONEXÃO WebSocket
+    ws.on('close', () => {
+      console.log('disconectado');
+    });
+
+    //ENVIAR MENSAGEM PARA O CLIENTE APÓS ALGUM EVENTO NO SERVIDOR
+    ws.send('Mensagem do servidor para o cliente');
+  });
+
 //RODA O SERVIDOR NA PORTA ESPECIFICADA
-app.listen(port, () => {
+server.listen(port, () => {
     //RETORNA FEEDBACK PARA O USÁRIO
     console.log(`servidor rodando na porta ${port}`)
 })
