@@ -31,6 +31,7 @@
 const express = require('express')
 const cors = require('cors')
 const http = require('http');
+const axios = require('axios')
 
 //INICIA A APLICAÇÃO USANDO A BIBLIOTECA EXPRESS
 const app = express()
@@ -70,6 +71,7 @@ const simulationRouter = require('./routes/simulation')
 const achievementRouter = require('./routes/achievement')
 const exerciseRouter = require('./routes/exercise')
 const matterRouter = require('./routes/matter')
+const feedbackRouter = require('./routes/feedback')
 
 //DETERMINA A ROTA PADRÃO E UTILIZA A PARTIR DA ROTA DEFINIDA
 app.use('/pictures', pictureRouter)
@@ -78,7 +80,23 @@ app.use('/simulation', simulationRouter)
 app.use('/achievement', achievementRouter)
 app.use('/exercise', exerciseRouter)
 app.use('/matter', matterRouter)
+app.use('/feedback', feedbackRouter)
 app.use('/', personRouter)
+
+//FUNÇÃO RESPONSÁVEL POR SALVAR OS FEEDBACKS
+const postData = async (id, message, name) => {
+  try {
+    const response = await axios.post('http://localhost:3000/feedback/upload', {
+      userID: id,
+      message: message,
+      name: name
+    });
+
+    console.log(response.data);
+  } catch (error) {
+    console.error('Erro na requisição:', error);
+  }
+};
 
 //LÓGICA WebSocket
 wss.on('connection', (ws) => {
@@ -88,6 +106,9 @@ wss.on('connection', (ws) => {
     ws.on('message', (message) => {
       console.log(`WebSocket mensagem recebida: ${message}`);
       wss.clients.forEach((client) => client.send(message))
+
+      //SALVA NO BANCO DE DADOS OS FEEDBACKS DO USUÁRIO
+      postData(JSON.parse(message).id, JSON.parse(message).text, JSON.parse(message).user)
     });
   
     //EVENTO DE FECHAR CONEXÃO WebSocket
