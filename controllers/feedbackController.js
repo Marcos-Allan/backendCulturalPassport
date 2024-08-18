@@ -20,7 +20,7 @@ exports.getOne = async (req, res) => {
 //ROTA PARA CRIAR CONQUISTA
 exports.create = async (req, res) => {
     //PEGA OS DADOS PELA REQUISIÇÃO
-    const { userID, message, name } = req.body
+    const { userID, message, name, userImg } = req.body
 
     try {
         //CRIA UM NOVO FEEDBACK
@@ -28,6 +28,7 @@ exports.create = async (req, res) => {
             userID:  userID,
             message:  message,
             name:  name,
+            userImg: userImg
         })
 
         //SALVA O FEEDBACK NO BANCO DE DADOS

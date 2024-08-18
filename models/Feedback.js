@@ -17,6 +17,10 @@ const FeedbackSchema = new Schema({
     name: {
         type: String,
         required: true
+    },
+    userImg: {
+        type: String,
+        required: true
     }
 })
 
