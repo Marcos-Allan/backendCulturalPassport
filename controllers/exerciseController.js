@@ -20,13 +20,14 @@ exports.getOne = async (req, res) => {
 //ROTA PARA SALVAR ARQUIVO NO  SERVIDOR
 exports.create = async (req, res) => {
     //PEGA OS DADOS PELA REQUISIÇÃO
-    const { matter, title } = req.body
+    const { matter, title, description } = req.body
 
     try {
         //CRIA UM NOVO EXERCICIO
         const exercise = new Exercise({
             matter:  matter,
-            title:  title
+            title:  title,
+            description: description
         })
 
         //SALVA O EXERCICIO NO BANCO DE DADOS
