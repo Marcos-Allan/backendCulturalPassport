@@ -4,7 +4,8 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "vercel-build": "chmod +x ./node_modules/.bin/node-gyp-build && npm run build",
+    "vercel-build": "npm run build",
+    "postinstall": "if [ \"$VERCEL\" == \"1\" ]; then npm install --platform=linux argon2; fi",
     "start": "node index.js",
     "dev": "nodemon index.js"
   },
