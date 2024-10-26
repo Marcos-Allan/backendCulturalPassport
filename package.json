@@ -4,8 +4,6 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "vercel-build": "npm run build",
-    "postinstall": "if [ \"$VERCEL\" == \"1\" ]; then npm install --platform=linux argon2; fi",
     "start": "node index.js",
     "dev": "nodemon index.js"
   },
