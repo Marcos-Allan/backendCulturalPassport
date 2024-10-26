@@ -304,3 +304,24 @@ exports.updateUserById = async (req, res) => {
     await person.save();
     res.send(person);
 };
+
+exports.deleteUserById = async (req, res) => {
+    try {
+        // Obtém o ID do usuário a ser excluído a partir dos parâmetros da requisição
+        const id = req.params.id;
+
+        // Tenta encontrar e deletar o usuário no banco de dados
+        const person = await Person.findByIdAndDelete(id);
+
+        // Verifica se o usuário foi encontrado e excluído
+        if (!person) {
+            return res.status(404).send('Usuário não encontrado');
+        }
+
+        // Retorna uma resposta de sucesso
+        res.status(200).send({ message: 'Usuário excluído com sucesso', user: person });
+    } catch (error) {
+        // Captura qualquer erro e retorna uma mensagem de erro
+        res.status(500).send({ message: 'Erro ao excluir o usuário', error: error.message });
+    }
+};
