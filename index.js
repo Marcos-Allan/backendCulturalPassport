@@ -99,7 +99,7 @@ const postData = async (id, message, name) => {
 };
 
 //ROTA PARA EVITAR PEGAR A IMAGEM INEXISTENTE
-app.get('/favicon.png', (req, res) => res,status(204))
+app.get('/favicon.png', (req, res) => res.status(204))
 
 //LÓGICA WebSocket
 wss.on('connection', (ws) => {
