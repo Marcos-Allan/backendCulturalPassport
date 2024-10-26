@@ -14,6 +14,14 @@ const FeedbackSchema = new Schema({
         type: String,
         required: true
     },
+    raiting: {
+        type: Number,
+        required: true
+    },
+    data: {
+        type: String,
+        required: true
+    },
     name: {
         type: String,
         required: true
