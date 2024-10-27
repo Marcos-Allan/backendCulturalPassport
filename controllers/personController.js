@@ -1,16 +1,16 @@
 // IMPORTAÇÃO DO MODELO DO BANCO DE DADOS
-const Person = require("../models/Person");
+const Person = require("../models/Person")
 
 // IMPORTA AS BIBLIOTECAS BAIXADAS E NECESSÁRIAS PARA RODAR A APLICAÇÃO
-const nodemailer = require('nodemailer');
-const bcrypt = require('bcrypt'); // Substituído argon2 por bcrypt
-const jwt = require('jsonwebtoken');
+const nodemailer = require('nodemailer')
+const bcrypt = require('bcrypt') // Substituído argon2 por bcrypt
+const jwt = require('jsonwebtoken')
 
 // INICIA AS VARIÁVEIS DE AMBIENTE PARA SEGURANÇA DA APLICAÇÃO
-require('dotenv').config();
+require('dotenv').config()
 
 // INICIA A VARIAVEL code COMO VAZIA
-let code;
+let code
 
 // CONFIGURAÇÃO DO NODEMAILER E DO SERVIDOR DO GMAIL PARA ENVIAR OS EMAILS
 const smtp = nodemailer.createTransport({
@@ -21,11 +21,12 @@ const smtp = nodemailer.createTransport({
         user: process.env.EMAIL_SENDER,
         pass: process.env.CODE_EMAIL,
     }
-});
+})
 
 // FUNÇÃO RESPONSÁVEL POR CRIAR NÚMEROS ALEATÓRIOS
 function randomNumber() {
-    return Math.floor(Math.random() * 10);
+    //RETORNA NÚMERO ALEATÓRIO ENTRE 0 E 10
+    return Math.floor(Math.random() * 10)
 }
 
 // FUNÇÃO RESPONSÁVEL POR ENVIAR EMAIL
@@ -38,290 +39,386 @@ function sendEmail(emailReceiver, code) {
         text: `Código de confirmação ${code}`
     })
     .then(() => {
-        console.log("Email enviado com sucesso!");
-        return;
+        //ESCREVE NO CONSOLE MENSAGEM DE SUCESSO
+        console.log("Email enviado com sucesso!")
+        return
     }).catch((error) => {
-        console.log("Algo deu errado no envio do email: ", error);
-        return;
-    });
+        //ESCREVE NO CONSOLE MENSAGEM DE ERRO
+        console.log("Algo deu errado no envio do email: ", error)
+        return
+    })
 }
 
 // FUNÇÃO PARA FAZER HASH DA SENHA
 async function hashPassword(password) {
     try {
-        // Utiliza o bcrypt para hashear a senha
-        const saltRounds = 10; // número de rounds para gerar o salt
-        return await bcrypt.hash(password, saltRounds);
+        //DEFINE O NÍVEL DE DIFICULDADE DA SENHA
+        const saltRounds = 10
+
+        //GERA A DIFICULDADE DA SENHA
+        const salt = await bcrypt.genSalt(saltRounds)
+
+        //GERA A SENHA HASHEADA
+        const hash = await bcrypt.hash(password, salt)
+
+        //RETORNA A SENHA HASHEADA
+        return hash
     } catch (err) {
-        throw new Error('Erro ao hashear a senha');
+        //ESCREVE O ERRO NO CONSOLE
+        console.error("Erro ao hashear a senha:", err)
+
+        //RETORNA O ERRO AO TENTAR HASHEAR A SENHA
+        throw new Error('Erro ao hashear a senha')
     }
 }
 
 // FUNÇÃO PARA VERIFICAR A SENHA
-async function verifyPassword(hash, password) {
+async function verifyPassword(password, hash) {
     try {
-        // Verifica se a senha digitada é igual a senha hasheada
-        return await bcrypt.compare(password, hash);
+        //FAZ A VERIFICAÇÃO DA SENHA HASEHADA SALVA NO BD E DA SENHA FORNECIDA PELO USUÁRIO
+        const isMatch = await bcrypt.compare(password, hash)
+        //RETORNA O RESULTADO 
+        return isMatch
     } catch (err) {
-        throw new Error('Erro ao verificar a senha');
+        //ESCREVE O ERRO NO CONSOLE
+        console.error("Erro ao verificar a senha:", err)
+
+        //RETORNA O ERRO AO TENTAR COMPARAR A SENHA
+        throw new Error('Erro ao verificar a senha')
     }
 }
 
 // MIDDLEWARE DE VERIFICAÇÃO DE TOKEN
 function checkToken(req, res, next) {
-    const authHeader = req.headers['authorization'];
-    const token = authHeader && authHeader.split(" ")[1];
+    const authHeader = req.headers['authorization']
+    const token = authHeader && authHeader.split(" ")[1]
 
     if (!token) {
-        res.send('Acesso negado man');
-        return;
+        res.send('Acesso negado man')
+        return
     }
 
     try {
-        const secret = process.env.SECRET;
-        jwt.verify(token, secret);
-        next();
+        const secret = process.env.SECRET
+        jwt.verify(token, secret)
+        next()
     } catch (error) {
-        res.send('token invalido');
+        res.send('token invalido')
     }
 }
 
-// ROTAS
-
 // ROTA PARA FAZER SIGN-UP
 exports.signUp = async (req, res) => {
-    const email = req.body.email;
-    const name = req.body.name;
-    const password = req.body.password;
+    //PEGA OS VALORES POR CORPO DA REQUISIÇÃO
+    const email = req.body.email
+    const name = req.body.name
+    const password = req.body.password
 
-    const img = req.body.img || 'https://w7.pngwing.com/pngs/213/343/png-transparent-computer-icons-user-background-icon-cdr-monochrome-name.png';
+    //VERIFICA SE O CAMPO FOI PASSADO SE NÃO COLOCA UMA VALOR PADRÃO
+    const img = req.body.img || 'https://w7.pngwing.com/pngs/213/343/png-transparent-computer-icons-user-background-icon-cdr-monochrome-name.png'
 
+    //VERIFICA SE O CAMPO FOI PASSADO
     if (!email) { 
-        res.send('Por favor infomre o email');
-        return;
+        res.send('Por favor infomre o email')
+        return
     }
 
+    //VERIFICA SE O CAMPO FOI PASSADO
     if (!name) {
-        res.send('Por favor informe o seu nome');
-        return;
+        res.send('Por favor informe o seu nome')
+        return
     }
-
+    
+    //VERIFICA SE O CAMPO FOI PASSADO
     if (!password) {
-        res.send('Por favor informe uma senha');
-        return;
+        res.send('Por favor informe uma senha')
+        return
     }
 
-    const person = await Person.findOne({ email: email });
-
+    //BUSCA PELO USUÁRIO NO BANCO DE DADOS
+    const person = await Person.findOne({ email: email })
+    
+    //VERIFICA SE O USUÁRIO ESTÁ CADASTRADO
     if (person) {
-        res.send('Usuário já cadastrado com este email');
-        return;
+        //RETORNA MENSAGEM DE ERRO
+        res.send('Usuário já cadastrado com este email')
+        return
     } else {
-        const passwordHash = await hashPassword(password);
+        //CRIA O HASH DA SENHA
+        const passwordHash = await hashPassword(password)
 
+        //CRIA UM NOVO USUÁRIO
         const person = new Person({
             name: name,
             email: email,
             password: passwordHash,
             img: img
-        });
+        })
 
-        await person.save();
-        res.send(person);
-        return;
+        //SALVA O USUÁRIO NO BANCO DE DADOS
+        await person.save()
+
+        //RETORNA O USUÁRIO
+        res.send(person)
+
+        return
     }
-};
+}
 
 // ROTA PARA FAZER SIGN-IN
 exports.signIn = async (req, res) => {
-    const emailPesq = req.body.email;
-    const password = req.body.password;
+    //PEGA OS VALORES POR CORPO DA REQUISIÇÃO
+    const emailPesq = req.body.email
+    const password = req.body.password
 
+    //VERIFICA SE O CAMPO FOI PASSADO
     if (!emailPesq) {
-        res.send('Por favor insira um email');
-        return;
+        //RETORNA MENSAGEM DE ERRO
+        res.send('Por favor insira um email')
+        return
     }
 
+    //VERIFICA SE O CAMPO FOI PASSADO
     if (!password) {
-        res.send('Por favor insira sua senha');
-        return;
+        //RETORNA MENSAGEM DE ERRO
+        res.send('Por favor insira sua senha')
+        return
     }
 
-    const person = await Person.findOne({ email: emailPesq });
+    //BUSCA PELO USUÁRIO NO BANCO DE DADOS
+    const person = await Person.findOne({ email: emailPesq })
 
+    //VERIFICA SE O USUÁRIO ESTÁ CADASTRADO
     if (person) {
+        //VERIFICA SE O USUÁRIO TEM SENHA OU NÃO
         if (person.password) {
-            const checkPassword = await verifyPassword(person.password, password);
+            //VERIFICA SE A SENHA DO USUÁRIO É IGUAL A SENHA CADASTRADA NO BANCO DE DADOS
+            const checkPassword = await verifyPassword(password, person.password)
 
-            if (checkPassword) {
-                const secret = process.env.SECRET;
+            //EXECUTA SE A SENHA FOR IGUAL A DO BANCO DE DADOS
+            if (checkPassword == true) {
 
-                // Cria o token de acesso do usuário
-                const token = jwt.sign({ id: person._id }, secret);
-                res.send({ msg: 'token', token: token });
+                //RETORNA DADOS DA CONTA
+                res.send(person)
+                // const secret = process.env.SECRET
+
+                // // Cria o token de acesso do usuário
+                // const token = jwt.sign({ id: person._id }, secret)
+                // res.send({ msg: 'token', token: token })
             } else {
-                res.send('Senha incorreta');
+                //RETORNA MENSAGEM DE ERRO
+                res.send('Senha incorreta')
             }
         } else {
-            res.send('Usuário cadastrado com a conta do google');
-            return;
+            //RETORNA MENSAGEM DE ERRO
+            res.send('Usuário cadastrado com a conta do google')
+            return
         }
     } else {
-        res.send('Usuario não encontrado no sistema');
+        //RETORNA MENSAGEM DE ERRO
+        res.send('Usuario não encontrado no sistema')
     }
-};
+}
 
 // ROTA PARA FAZER SIGN-IN CASO JA TENHA CONTA OU SIGN-UP CASO NÃO TENHA CONTA UTILIZANDO O GOOGLE
 exports.signInGoogle = async (req, res) => {
-    const emailPesq = req.body.email;
-    const name = req.body.name;
+    //PEGA OS VALORES POR CORPO DA REQUISIÇÃO
+    const emailPesq = req.body.email
+    const name = req.body.name
 
-    const img = req.body.img || sortAvatar(avatares);
+    //VERIFICA SE O CAMPO FOI PASSADO SE NÃO COLOCA UMA VALOR PADRÃO
+    const img = req.body.img || sortAvatar(avatares)
 
+    //VERIFICA SE O CAMPO FOI PASSADO
     if (!emailPesq) {
-        res.send('Por favor insira um email');
-        return;
+        //RETORNA MENSAGEM DE ERRO
+        res.send('Por favor insira um email')
+        return
     }
 
+    //VERIFICA SE O CAMPO FOI PASSADO
     if (!name) {
-        res.send('Por favor insira um nome');
-        return;
+        //RETORNA MENSAGEM DE ERRO
+        res.send('Por favor insira um nome')
+        return
     }
 
-    const person = await Person.findOne({ email: emailPesq });
+    //BUSCA PELO USUÁRIO NO BANCO DE DADOS
+    const person = await Person.findOne({ email: emailPesq })
 
+    //VERIFICA SE O USUÁRIO ESTÁ CADASTRADO
     if (person) {
+        //VERIFICA SE O USUÁRIO TEM SENHA OU NÃO
         if (person.password) {
-            res.send('Conta já cadastrada com email e senha');
-            return;
+            //RETORNA MENSAGEM DE ERRO
+            res.send('Conta já cadastrada com email e senha')
+            return
         } else {
-            res.send(person);
+            //RETORNA DADOS DA CONTA
+            res.send(person)
         }
     } else {
+        //CRIA UM NOVO USUÁRIO
         const person = new Person({
             name: name,
             email: emailPesq,
             img: img,
             login_type: 'google'
-        });
+        })
 
-        await person.save();
-        res.send(person);
+        //SALVA O USUÁRIO NO BANCO DE DADOS
+        await person.save()
+
+        //RETORNA DADOS DA CONTA
+        res.send(person)
     }
-};
+}
 
 // EXEMPLO DE ROTA PRIVADA PARA
 exports.searchUserById = async (req, res) => {
-    const id = req.params.id;
-    const person = await Person.findById(id, '-password');
+    //PEGA OS VALORES POR CORPO DA REQUISIÇÃO
+    const id = req.params.id
+    const person = await Person.findById(id, '-password')
 
+    //VERIFICA SE O USUÁRIO ESTÁ CADASTRADO
     if (person) {
-        res.send(person);
+        //RETORNA DADOS DA CONTA
+        res.send(person)
     } else {
-        res.send("Usuário não encontrado");
+        //RETORNA MENSAGEM DE ERRO
+        res.send("Usuário não encontrado")
     }
-};
+}
 
 // REQUISIÇÃO DE TESTE
 exports.teste = async (req, res) => {
-    res.send('/teste');
-};
+    //RETORNA MENSAGEM
+    res.send('/teste')
+}
 
 // REQUISIÇÃO DE TESTE DE ENVIO DE EMAILS
 exports.forgoutPassword = async (req, res) => {
-    const email = req.params.email;
-    const person = await Person.findOne({ email: email });
+    //PEGA OS VALORES POR CORPO DA REQUISIÇÃO
+    const email = req.params.email
 
+    //BUSCA PELO USUÁRIO NO BANCO DE DADOS
+    const person = await Person.findOne({ email: email })
+
+    //VERIFICA SE O USUÁRIO ESTÁ CADASTRADO
     if (person) {
+        //VERIFICA SE O USUÁRIO TEM SENHA OU NÃO
         if (person.password) {
-            code = `${randomNumber()}${randomNumber()}${randomNumber()}-${randomNumber()}${randomNumber()}${randomNumber()}`;
-            sendEmail(email, code);
-            res.send({ message: 'Código enviado para o email informado', user: person });
-            return;
+            //GERA O CÓDIGO DE VERIFICAÇÃO
+            code = `${randomNumber()}${randomNumber()}${randomNumber()}-${randomNumber()}${randomNumber()}${randomNumber()}`
+            sendEmail(email, code)
+            
+            //ENVIA A MENSAGEM E O USUÁRIO
+            res.send({ message: 'Código enviado para o email informado', user: person })
+            return
         } else {
-            res.send('Conta já cadastrada com email e senha');
-            return;
+            //ENVIA MENSAGEM DE ERRO
+            res.send('Conta já cadastrada com email e senha')
+            return
         }
     } else {
-        res.send('Usuário não encontrado');
-        return;
+        //ENVIA MENSAGEM DE ERRO
+        res.send('Usuário não encontrado')
+        return
     }
-};
+}
 
 // REQUISIÇÃO DE TESTE DE ENVIO DE EMAILS
 exports.verifyCode = async (req, res) => {
-    const codeUser = req.params.code;
+    //PEGA OS VALORES POR CORPO DA REQUISIÇÃO
+    const codeUser = req.params.code
 
     if (code == codeUser) {
-        res.send('Código de verificação correto');
-        return;
+        //ENVIA MENSAGEM DE ERRO
+        res.send('Código de verificação correto')
+        return
     } else {
-        res.send('Código de verificação errado');
-        return;
+        //ENVIA MENSAGEM DE ERRO
+        res.send('Código de verificação errado')
+        return
     }
-};
+}
 
 // LISTA TODOS OS USUÁRIOS CADASTRADOS NO BANCO DE DADOS
 exports.searchUsers = async (req, res) => {
-    const person = await Person.find();
-    res.send(person);
-};
+    //BUSCA POR TODOS OS USUÁRIOS CADASTRADOS NO BD
+    const person = await Person.find()
+    //RETORNA DADOS DA CONTA
+    res.send(person)
+}
 
 // PROCURA POR USUÁRIO ESPECIFICO
 exports.searchUserByEmail = async (req, res) => {
-    const email = req.params.email;
-    const person = await Person.findOne({ email: email });
+    //PEGA OS VALORES POR CORPO DA REQUISIÇÃO
+    const email = req.params.email
+    const person = await Person.findOne({ email: email })
 
+    //VERIFICA SE O USUÁRIO ESTÁ CADASTRADO
     if (person) {
-        res.send(person);
-        return;
+        //RETORNA DADOS DA CONTA
+        res.send(person)
+        return
     } else {
-        res.send('Usuário não encontrado');
-        return;
+        //ENVIA MENSAGEM DE ERRO
+        res.send('Usuário não encontrado')
+        return
     }
-};
+}
 
 // ROTA PARA ATUALIZAR USUÁRIO
 exports.updateUserById = async (req, res) => {
-    const id = req.params.id;
-    const { name, email, img, password, simulation, cronogram } = req.body;
+    //PEGA OS VALORES POR CORPO DA REQUISIÇÃO
+    const id = req.params.id
+    const { name, email, img, password, simulation, cronogram } = req.body
 
-    const passwordHash = password ? await hashPassword(password) : password;
+    //CRIA UM NOVO HASH DE SENHA SE A SENHA FOR PASSADA SE NÃO DEIXA A SENHA DO USUÁRIO
+    const passwordHash = password ? await hashPassword(password) : password
 
-    const person = await Person.findById(id);
+    //VERIFICA SE O USUÁRIO ESTÁ CADASTRADO
+    const person = await Person.findById(id)
 
+    //VERIFICA SE O USUÁRIO NÃO ESTÁ CADASTRADO
     if (!person) {
-        return res.send('Usuário não encontrado');
+        return res.send('Usuário não encontrado')
     }
 
-    if (name) person.name = name;
-    if (email) person.email = email;
-    if (img) person.img = img;
-    if (password) person.password = passwordHash;
-    if (simulation) person.simulation = simulation;
-    if (cronogram) person.cronogram = cronogram;
+    //VERIFICA SE O CAMPO FOI PASSADO
+    if (name) person.name = name
+    if (email) person.email = email
+    if (img) person.img = img
+    if (password) person.password = passwordHash
+    if (simulation) person.simulation = simulation
+    if (cronogram) person.cronogram = cronogram
 
-    await person.save();
-    res.send(person);
-};
+    //SALVA O USUÁRIO NO BANCO DE DADOS
+    await person.save()
+
+    //RETORNA DADOS DA CONTA
+    res.send(person)
+}
 
 exports.deleteUserById = async (req, res) => {
     try {
-        // Obtém o ID do usuário a ser excluído a partir dos parâmetros da requisição
-        const id = req.params.id;
+        //PEGA OS VALORES POR CORPO DA REQUISIÇÃO
+        const id = req.params.id
 
-        // Tenta encontrar e deletar o usuário no banco de dados
-        const person = await Person.findByIdAndDelete(id);
+        //BUSCA PELO USUÁRIO NO BANCO DE DADOS
+        const person = await Person.findByIdAndDelete(id)
 
-        // Verifica se o usuário foi encontrado e excluído
+        //VERIFICA SE O USUÁRIO NÃO ESTÁ CADASTRADO
         if (!person) {
-            return res.status(404).send('Usuário não encontrado');
+            //ENVIA MENSAGEM DE ERRO
+            return res.status(404).send('Usuário não encontrado')
         }
 
-        // Retorna uma resposta de sucesso
-        res.status(200).send({ message: 'Usuário excluído com sucesso', user: person });
+        //ENVIA MENSAGEM DE SUCESSO
+        res.status(200).send({ message: 'Usuário excluído com sucesso', user: person })
     } catch (error) {
-        // Captura qualquer erro e retorna uma mensagem de erro
-        res.status(500).send({ message: 'Erro ao excluir o usuário', error: error.message });
+        //ENVIA MENSAGEM DE ERRO
+        res.status(500).send({ message: 'Erro ao excluir o usuário', error: error.message })
     }
-};
+}

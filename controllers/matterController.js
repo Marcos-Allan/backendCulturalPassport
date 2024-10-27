@@ -7,6 +7,7 @@ exports.getOne = async (req, res) => {
     const matterName = req.params.matter;
 
     try {
+        //BUSCA PELA MATÉRIA NO BANCO DE DADOS
         const matter = await Matter.findOne({ matter: matterName })
 
         //RETORNA O SIMULADO ESPECIFICADO dO BD
@@ -20,6 +21,7 @@ exports.getOne = async (req, res) => {
 //ROTA PARA LISTAR TODOS OS SIMULADOS
 exports.listAll = async (req, res) => {
     try {
+        //BUSCA PELAS MATÉRIAS NO BANCO DE DADOS
         const matters = await Matter.find()
 
         //RETORNA AS MATÉRIAS CADASTRADAS NO BD

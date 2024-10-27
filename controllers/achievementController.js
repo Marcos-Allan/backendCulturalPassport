@@ -7,10 +7,11 @@ exports.getOne = async (req, res) => {
     const title = req.params.title;
 
     try {
-        const simulations = await Achievement.findOne({ title: title })
+        //BUSCA PELA CONQUISTA NO BANCO DE DADOS
+        const achievements = await Achievement.findOne({ title: title })
 
         //RETORNA O SIMULADO ESPECIFICADO dO BD
-        res.send(simulations)
+        res.send(achievements)
     } catch (error) {
         //RETORNA UMA MENSAGEM DE ERRO
         res.status(500).json({ message: "Erro ao procurar por  conquista." })
@@ -46,6 +47,7 @@ exports.create = async (req, res) => {
 //ROTA PARA LISTAR TODOS OS SIMULADOS
 exports.listAll = async (req, res) => {
     try {
+        //BUSCA PELAS CONQUISTAS NO BANCO DE DADOS
         const achievements = await Achievement.find()
 
         //RETORNA O SIMULADO ESPECIFICADO DO BD

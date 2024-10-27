@@ -7,6 +7,7 @@ exports.getOne = async (req, res) => {
     const title = req.params.title;
 
     try {
+        //BUSCA PELOS FEEDBACKS NO BANCO DE DADOS
         const feedbacks = await Feedback.findOne({ title: title })
 
         //RETORNA O FEEDBACK ESPECIFICADO dO BD

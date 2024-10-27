@@ -7,6 +7,7 @@ exports.getOne = async (req, res) => {
     const matter = req.params.matter;
 
     try {
+        //BUSCA PELOS SIMULADOS NO BANCO DE DADOS
         const simulations = await Simulation.findOne({ matter: matter })
 
         //RETORNA O SIMULADO ESPECIFICADO dO BD

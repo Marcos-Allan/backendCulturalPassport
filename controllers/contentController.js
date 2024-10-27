@@ -1,6 +1,7 @@
 //IMPORTAÇÃO DO MODELO DO BANCO DE DADOS
 const Content = require("../models/Content")
 
+//IMPORTAÇÃO DAS BIBLIOTECAS PARA RODAR A APLICAÇÃO
 const fs = require('fs')
 const path = require('path')
 

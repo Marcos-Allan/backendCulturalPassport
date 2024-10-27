@@ -7,6 +7,7 @@ exports.getOne = async (req, res) => {
     const matter = req.params.matter;
 
     try {
+        //BUSCA PELOS EXERCICIOS NO BANCO DE DADOS
         const exercises = await Exercise.findOne({ matter: matter })
 
         //RETORNA O SIMULADO ESPECIFICADO dO BD
@@ -44,6 +45,7 @@ exports.create = async (req, res) => {
 //ROTA PARA LISTAR TODOS OS EXERCICIOS
 exports.listAll = async (req, res) => {
     try {
+        //BUSCA PELOS EXERCICIOS NO BANCO DE DADOS
         const exercicios = await Exercise.find()
 
         //RETORNA O SIMULADO ESPECIFICADO DO BD
