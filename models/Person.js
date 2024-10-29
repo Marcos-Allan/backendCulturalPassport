@@ -59,12 +59,12 @@ const PersonSchema = new Schema({
             },
             message: 'timeCronograma must contain exactly two numbers.'
         },
-        default: [0, 0]
+        default: [12, 30]
     },
     soundAlert: {
         type: String,
         required: false,
-        default: ''
+        default: 'https://firebasestorage.googleapis.com/v0/b/cultural-passport-78148.appspot.com/o/images%2Fsounds%2F14.mp3?alt=media&token=05af905e-a0c0-4552-b428-bfa036e28a13'
     }
 });
   
