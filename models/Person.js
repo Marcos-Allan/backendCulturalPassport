@@ -1,49 +1,10 @@
-// //IMPORTA AS BIBLIOTECAS BAIXADAS E NECESSÁRIAS PARA RODAR A APLICAÇÃO
-// const mongoose = require("mongoose")
+// IMPORTA AS BIBLIOTECAS BAIXADAS E NECESSÁRIAS PARA RODAR A APLICAÇÃO
+const mongoose = require("mongoose");
 
-// //DECLARA UMA VARIÁVEL COMO UM SCHEMA A SER DEFINIDO
-// const Schema = mongoose.Schema
+// DECLARA UMA VARIÁVEL COMO UM SCHEMA A SER DEFINIDO
+const Schema = mongoose.Schema;
 
-// //DECLARA O SCHEMA DO USUÁRIO
-// const PersonSchema = new Schema({
-//     name: {
-//         type: String,
-//         required: false
-//     },
-//     email: {
-//         type: String,
-//         required: true
-//     },
-//     password: {
-//         type: String,
-//         required: false
-//     },
-//     img: {
-//         type: String,
-//         required: false
-//     },
-//     simulations: [
-//         {
-//             name: String,
-//         },
-//         {
-//             concluded: Boolean,
-//         }
-//     ],
-//     simulationsConcludeds: {
-//         type: Number,
-//         required: true,
-//     }
-// })
-
-
-//IMPORTA AS BIBLIOTECAS BAIXADAS E NECESSÁRIAS PARA RODAR A APLICAÇÃO
-const mongoose = require("mongoose")
-
-//DECLARA UMA VARIÁVEL COMO UM SCHEMA A SER DEFINIDO
-const Schema = mongoose.Schema
-
-//DECLARA O SCHEMA DOS SIMULADOS DO USUÁRIO
+// DECLARA O SCHEMA DOS SIMULADOS DO USUÁRIO
 const SimulationSchema = new Schema({
     name: {
         type: String,
@@ -55,7 +16,7 @@ const SimulationSchema = new Schema({
     }
 });
   
-//DECLARA O SCHEMA DO USUÁRIO
+// DECLARA O SCHEMA DO USUÁRIO
 const PersonSchema = new Schema({
     name: {
         type: String,
@@ -89,16 +50,29 @@ const PersonSchema = new Schema({
         type: Number,
         required: false,
         default: 0,
+    },
+    timeCronograma: {
+        type: [Number],
+        validate: {
+            validator: function (arr) {
+                return arr.length === 2;
+            },
+            message: 'timeCronograma must contain exactly two numbers.'
+        },
+        default: [0, 0]
+    },
+    soundAlert: {
+        type: String,
+        required: false,
+        default: ''
     }
 });
   
-//MIDDLEWARE PARA ATUALIZAR O CAMPO simulationsConcludeds ANTES DE SALVAR O ARQUIVO
+// MIDDLEWARE PARA ATUALIZAR O CAMPO simulationsConcludeds ANTES DE SALVAR O ARQUIVO
 PersonSchema.pre('save', function (next) {
     this.simulationsConcludeds = this.simulations.filter(sim => sim.concluded).length;
     next();
 });
 
-//EXPORTA O SCHEMA DEFINIDO
-module.exports = mongoose.model("Person", PersonSchema)
-
-// https://firebasestorage.googleapis.com/v0/b/cultural-passport-78148.appspot.com/o/images%2Favatars%2Favatar-7.jpg?alt=media&token=a355dcc2-9bf4-44f7-aef1-38a660a2b38a
+// EXPORTA O SCHEMA DEFINIDO
+module.exports = mongoose.model("Person", PersonSchema);
