@@ -391,10 +391,14 @@ exports.updateUserById = async (req, res) => {
     if (email) person.email = email
     if (img) person.img = img
     if (password) person.password = passwordHash
-    if (simulation) person.simulation = simulation
     if (cronogram) person.cronogram = cronogram
     if (timeCronograma) person.timeCronograma = timeCronograma
     if (soundAlert) person.soundAlert = soundAlert
+
+    //ADICIONA UM NOVO ITEM NO ARRAY DE SIMULADOS
+    if (simulation) {
+        person.simulations.push(simulation);
+    }
 
     // SALVA O USUÁRIO NO BANCO DE DADOS
     await person.save()
