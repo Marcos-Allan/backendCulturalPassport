@@ -133,5 +133,5 @@ wss.on('connection', (ws) => {
 //RODA O SERVIDOR NA PORTA ESPECIFICADA
 server.listen(port, () => {
     //RETORNA FEEDBACK PARA O USÁRIO
-    console.log(`servidor rodando na porta ${port}`)
+    console.log(`Servidor rodando na porta ${port}`)
 })
